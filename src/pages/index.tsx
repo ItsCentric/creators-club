@@ -4,7 +4,16 @@ import Link from "next/link";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const { data } = api.posts.getAll.useQuery();
+  const posts = data?.map((post) => {
+    return (
+      <div key={post.id}>
+        <h1>{post.creatorId}</h1>
+        <p>{post.description}</p>
+        <p>{post.id}</p>
+      </div>
+    );
+  });
 
   return (
     <>
@@ -43,8 +52,18 @@ const Home: NextPage = () => {
             </Link>
           </div>
           <p className="text-2xl text-white">
-            {hello.data ? hello.data.greeting : "Loading tRPC query..."}
+            {posts ?? "Loading tRPC query..."}
           </p>
+        </div>
+        <div className="text-white">
+          <p className="font-cabin font-extrabold">This is Cabin</p>
+          <p className="font-montserrat font-medium">This is Montserrat</p>
+          <p className="font-yantramanav">This is Yantramanav</p>
+          <div className="h-16 w-16 bg-primary"></div>
+          <div className="h-16 w-16 bg-secondary"></div>
+          <div className="h-16 w-16 bg-p-button"></div>
+          <div className="h-16 w-16 bg-s-button"></div>
+          <div className="h-16 w-16 bg-accent"></div>
         </div>
       </main>
     </>
