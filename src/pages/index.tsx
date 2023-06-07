@@ -1,20 +1,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const { data } = api.posts.getAll.useQuery();
-  const posts = data?.map((post) => {
-    return (
-      <div key={post.id}>
-        <h1>{post.creatorId}</h1>
-        <p>{post.description}</p>
-        <p>{post.id}</p>
-      </div>
-    );
-  });
-
   return (
     <>
       <Head>
@@ -51,9 +39,6 @@ const Home: NextPage = () => {
               </div>
             </Link>
           </div>
-          <p className="text-2xl text-white">
-            {posts ?? "Loading tRPC query..."}
-          </p>
         </div>
         <div className="text-white">
           <p className="font-cabin font-extrabold">This is Cabin</p>
