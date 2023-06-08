@@ -7,10 +7,11 @@ import { cabin, montserrat, yantramanav } from "~/utils/fonts";
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ClerkProvider>
-      <Component
-        {...pageProps}
+      <main
         className={`${cabin.variable} ${montserrat.variable} ${yantramanav.variable}`}
-      />
+      >
+        <Component {...pageProps} />
+      </main>
     </ClerkProvider>
   );
 };
