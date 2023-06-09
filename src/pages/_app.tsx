@@ -18,8 +18,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     >
       <main
         className={`${cabin.variable} ${montserrat.variable} ${yantramanav.variable}`}
-      />
-      <Component {...pageProps} />
+      >
+        <Component {...pageProps} />
+      </main>
     </ClerkProvider>
   );
 };
