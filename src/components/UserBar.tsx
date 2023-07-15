@@ -3,7 +3,7 @@ import ListOfUsers from "./ListOfUsers";
 import { FiSettings } from "react-icons/fi";
 import {
   RedirectToUserProfile,
-  SignInButton,
+  SignUpButton,
   SignOutButton,
   useUser,
 } from "@clerk/nextjs";
@@ -65,21 +65,17 @@ export default function UserBar() {
 function UserButton() {
   const userState = useUser();
 
-  if (!userState.isLoaded) {
-    return <p>Loading...</p>;
-  }
-
   if (userState.isLoaded && !userState.isSignedIn) {
     return (
       <div className="mx-auto">
         <h3 className="mb-2 font-montserrat text-2xl font-semibold">
           New around here?
         </h3>
-        <SignInButton mode="modal">
-          <button className="bg-primary-500 hover:bg-primary-900 mx-auto block cursor-pointer rounded-full px-4 py-2 font-montserrat font-semibold text-white">
+        <SignUpButton mode="modal">
+          <button className="mx-auto block cursor-pointer rounded-full bg-red-500 px-4 py-2 font-montserrat font-semibold text-white hover:bg-red-600">
             Join the club
           </button>
-        </SignInButton>
+        </SignUpButton>
       </div>
     );
   }
@@ -87,20 +83,26 @@ function UserButton() {
   const user = userState.user;
 
   return (
-    <button className="flex items-center">
-      <Image
-        src={user.imageUrl}
-        width={64}
-        height={64}
-        alt={`${user.username ?? "user"}'s profile picture`}
-        className="mr-2 rounded-full border-2 border-black"
-      />
+    <button className="flex items-center rounded-full hover:bg-gray-200">
+      {user?.imageUrl ? (
+        <Image
+          src={user?.imageUrl ?? ""}
+          width={64}
+          height={64}
+          alt={`${user.username ?? "user"}'s profile picture`}
+          className="mr-2 rounded-full border-2 border-black bg-gray-200"
+        />
+      ) : (
+        <div className="mr-2 h-16 w-16 rounded-full border-2 border-black bg-gray-200"></div>
+      )}
       <h3 className="font-montserrat text-2xl font-semibold">
-        {user.username}
+        {user?.username
+          ? toTitleCase(user?.username ?? "user")
+          : skeletonText()}
       </h3>
       <SignOutButton>
-        <button className="ml-auto rounded-full p-2 hover:bg-gray-100">
-          <FaSignOutAlt size={24} color={"red"} />
+        <button className="ml-auto rounded-full p-2 text-red-500 hover:text-red-600">
+          <FaSignOutAlt size={24} />
         </button>
       </SignOutButton>
     </button>
@@ -119,5 +121,19 @@ function SettingsButton() {
       <p className="inline-block font-montserrat font-semibold">Settings</p>
       {redirect && <RedirectToUserProfile />}
     </button>
+  );
+}
+
+function toTitleCase(string: string) {
+  return string.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+  });
+}
+
+function skeletonText() {
+  return (
+    <div className="flex animate-pulse items-center">
+      <div className="h-8 w-32 rounded-full bg-gray-200"></div>
+    </div>
   );
 }

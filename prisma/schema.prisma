@@ -1,6 +1,5 @@
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+    provider = "prisma-client-js"
 }
 
 datasource db {
@@ -17,5 +16,4 @@ model User {
     following      User[]   @relation("Followers")
     createdAt      DateTime @default(now())
     lastOnline     DateTime @default(now())
-    username       String   @unique
 }
