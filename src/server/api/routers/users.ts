@@ -25,16 +25,27 @@ export const userRouter = createTRPCRouter({
 
       return dbUsers;
     }),
-  getUser: publicProcedure.input(z.string()).query(async ({ input, ctx }) => {
-    const clerkUser = await clerkClient.users.getUser(input);
-    const dbUser = await ctx.prisma.user.findUnique({
-      where: {
-        id: clerkUser.id,
-      },
-    });
+  getUser: publicProcedure
+    .input(z.string())
+    .query(async ({ input: userId, ctx }) => {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      const dbUser = await ctx.prisma.user.findUnique({
+        where: {
+          id: clerkUser.id,
+        },
+      });
+      if (clerkUser.username === null) throw new Error("Username is null");
 
-    return dbUser;
-  }),
+      const userData = {
+        ...dbUser,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        username: clerkUser.username,
+        profilePictureUrl: clerkUser.imageUrl,
+      };
+
+      return userData;
+    }),
   createUser: privateProcedure.mutation(async ({ ctx }) => {
     const dbUser = await ctx.prisma.user.create({
       data: {

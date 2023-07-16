@@ -10,6 +10,8 @@ import {
 import { FaSignOutAlt } from "react-icons/fa";
 import { useState } from "react";
 import { IoPeopleOutline } from "react-icons/io5";
+import Link from "next/link";
+import toTitleCase from "~/utils/toTitleCase";
 
 export default function UserBar() {
   const users = [
@@ -83,7 +85,10 @@ function UserButton() {
   const user = userState.user;
 
   return (
-    <button className="flex items-center rounded-full hover:bg-gray-200">
+    <Link
+      className="flex items-center rounded-full hover:bg-gray-200"
+      href={`/user/${user?.id ?? ""}`}
+    >
       {user?.imageUrl ? (
         <Image
           src={user?.imageUrl ?? ""}
@@ -105,7 +110,7 @@ function UserButton() {
           <FaSignOutAlt size={24} />
         </button>
       </SignOutButton>
-    </button>
+    </Link>
   );
 }
 
@@ -122,12 +127,6 @@ function SettingsButton() {
       {redirect && <RedirectToUserProfile />}
     </button>
   );
-}
-
-function toTitleCase(string: string) {
-  return string.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
-  });
 }
 
 function skeletonText() {

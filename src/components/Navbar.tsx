@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function Navbar() {
   return (
-    <nav className="order-2 flex-grow border-t border-gray-300 p-4 lg:order-first lg:border-r">
+    <nav className="fixed bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:flex-grow lg:border-r">
       <div>
         <p className="hidden text-center font-cabin text-4xl font-extrabold lg:block">
           Creators Club
