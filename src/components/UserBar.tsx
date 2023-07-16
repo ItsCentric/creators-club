@@ -14,6 +14,7 @@ import Link from "next/link";
 import toTitleCase from "~/utils/toTitleCase";
 
 export default function UserBar() {
+  const userState = useUser();
   const users = [
     {
       id: "12jfigi3j25j2kasfd1234855rlka",
@@ -40,32 +41,36 @@ export default function UserBar() {
 
   return (
     <div className="hidden min-w-max flex-grow border-l border-gray-300 p-4 lg:flex lg:flex-col lg:gap-8">
-      <UserButton />
-      <ListOfUsers
-        users={users}
-        className="w-full min-w-max p-2"
-        heading="You may like..."
-        subtext={
-          <IoPeopleOutline size={16} className="inline-block align-middle" />
-        }
-        subtextData="followerCount"
-      />
-      <ListOfUsers
-        users={users}
-        className="w-full p-2"
-        heading="Recently Posted"
-        subtext=" new posts"
-        subtextData="newPosts"
-        reverseSubtext={true}
-      />
+      <UserButton userState={userState} />
+      {userState.isSignedIn && (
+        <ListOfUsers
+          users={users}
+          className="w-full min-w-max p-2"
+          heading="You may like..."
+          subtext={
+            <IoPeopleOutline size={16} className="inline-block align-middle" />
+          }
+          subtextData="followerCount"
+        />
+      )}
+      {userState.isSignedIn && (
+        <ListOfUsers
+          users={users}
+          className="w-full p-2"
+          heading="Recently Posted"
+          subtext=" new posts"
+          subtextData="newPosts"
+          reverseSubtext={true}
+        />
+      )}
 
       <SettingsButton />
     </div>
   );
 }
 
-function UserButton() {
-  const userState = useUser();
+function UserButton(props: { userState: ReturnType<typeof useUser> }) {
+  const userState = props.userState;
 
   if (userState.isLoaded && !userState.isSignedIn) {
     return (
