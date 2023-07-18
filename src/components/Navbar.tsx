@@ -1,6 +1,6 @@
-import { CgFeed } from "react-icons/cg";
-import { MdSearch } from "react-icons/md";
-import { TbMessageCircle2 } from "react-icons/tb";
+import { AiOutlineSearch, AiOutlineHome } from "react-icons/ai";
+import { IoChatbubblesOutline } from "react-icons/io5";
+import { VscAccount } from "react-icons/vsc";
 import Image from "next/image";
 import { SignUpButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -29,19 +29,22 @@ export default function Navbar() {
             href="/"
             className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
           >
-            <CgFeed size={32} className="lg:mr-1 lg:inline-block" />
+            <AiOutlineHome size={32} className="lg:mr-2 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Your Feed</p>
           </Link>
         </li>
         <li>
           <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
-            <MdSearch size={32} className="lg:mr-1 lg:inline-block" />
+            <AiOutlineSearch size={32} className="lg:mr-2 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Search</p>
           </button>
         </li>
         <li>
           <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
-            <TbMessageCircle2 size={32} className="lg:mr-1 lg:inline-block" />
+            <IoChatbubblesOutline
+              size={32}
+              className="lg:mr-2 lg:inline-block"
+            />
             <p className="hidden font-semibold lg:inline-block">
               Conversations
             </p>
@@ -67,17 +70,7 @@ export default function Navbar() {
           <SignedOut>
             <SignUpButton>
               <button className="flex items-center justify-center px-4 py-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88a9.947 9.947 0 0 1 12.28 0C16.43 19.18 14.03 20 12 20z"
-                  />
-                </svg>
+                <VscAccount size={32} />
               </button>
             </SignUpButton>
           </SignedOut>
