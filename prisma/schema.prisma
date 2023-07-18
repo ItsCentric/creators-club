@@ -9,11 +9,8 @@ datasource db {
 }
 
 model User {
-    id             String   @id
-    followerCount  Int      @default(0)
-    followers      User[]   @relation("Followers")
-    followingCount Int      @default(0)
-    following      User[]   @relation("Followers")
-    createdAt      DateTime @default(now())
-    lastOnline     DateTime @default(now())
+    id        String   @id
+    followers User[]   @relation("follows")
+    following User[]   @relation("follows")
+    createdAt DateTime @default(now())
 }
