@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const hasFollowing = following.length >= 1;
 
   return (
-    <div className="flex h-screen flex-col lg:flex-row">
+    <div className="flex h-full flex-col lg:flex-row">
       <dialog ref={followersModal} className="w-4/5 max-w-lg rounded-lg">
         <IoMdClose
           className="absolute right-2 top-2 cursor-pointer"
@@ -257,7 +257,7 @@ function FollowButton(props: {
 
 function UserSkeletonPage() {
   return (
-    <div className="flex h-full max-h-screen flex-col overflow-hidden">
+    <div className="flex h-full max-h-full flex-col overflow-hidden">
       <div className="flex items-center justify-around border-b border-b-gray-200 px-4 py-8">
         <div className="animate-pulse">
           <div className="mb-2 inline-block h-16 w-16 rounded-full border-2 border-black bg-gray-200 align-middle lg:mr-2"></div>

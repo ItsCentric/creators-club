@@ -15,7 +15,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex h-screen flex-col lg:flex-row">
+      <main className="flex h-full flex-col lg:flex-row">
         <Navbar />
         <HomeFeed />
         <UserBar />
