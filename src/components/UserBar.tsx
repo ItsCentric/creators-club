@@ -108,11 +108,17 @@ function UserButton(props: { userState: ReturnType<typeof useUser> }) {
           ? toTitleCase(user?.username ?? "user")
           : skeletonText()}
       </h3>
-      <SignOutButton>
-        <button className="ml-auto rounded-full p-2 text-red-500 hover:text-red-600">
+      <button
+        className="ml-auto rounded-full p-2 text-red-500 hover:text-red-600"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
+      >
+        <SignOutButton>
           <FaSignOutAlt size={24} />
-        </button>
-      </SignOutButton>
+        </SignOutButton>
+      </button>
     </Link>
   );
 }
