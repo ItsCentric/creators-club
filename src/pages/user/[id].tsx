@@ -185,7 +185,7 @@ export default function ProfilePage() {
           </div>
           <div>
             {signedInUser?.id === userData.id && (
-              <RedirectToSettingsButton className="rounded-full bg-orange-400 px-4 py-2 hover:bg-orange-500">
+              <RedirectToSettingsButton className="rounded-full bg-accent-400 px-4 py-2 hover:bg-accent-500">
                 <BiPencil
                   size={32}
                   className="mr-1 inline-block align-middle"
@@ -236,7 +236,7 @@ function FollowButton(props: {
   if (isFollowing) {
     return (
       <button
-        className="rounded-full bg-red-500 px-8 py-2 font-semibold text-white"
+        className="rounded-full bg-secondary-400 px-8 py-2 font-semibold text-white hover:bg-secondary-500"
         onClick={() => unfollowUser(userId)}
       >
         Unfollow
@@ -247,7 +247,7 @@ function FollowButton(props: {
     <>
       <button
         onClick={() => followUser(userId)}
-        className="rounded-full bg-orange-500 px-8 py-2 font-semibold text-white"
+        className="rounded-full bg-accent-400 px-8 py-2 font-semibold text-black hover:bg-accent-500"
       >
         Follow
       </button>

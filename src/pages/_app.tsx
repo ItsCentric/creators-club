@@ -8,9 +8,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ClerkProvider
       appearance={{
+        variables: {
+          colorPrimary: "#fc8c54",
+        },
         elements: {
-          formButtonPrimary: "bg-primary-500 hover:bg-primary-900",
-          footerActionLink: "text-primary-500 hover:text-primary-500",
+          formButtonPrimary: "bg-primary-500 hover:bg-primary-600",
+          footerActionLink: "text-secondary-500 hover:text-secondary-600",
           formFieldLabel: "text-gray-900",
           identityPreviewEditButtonIcon: "text-accent-500",
         },

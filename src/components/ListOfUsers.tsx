@@ -26,7 +26,7 @@ export default function ListOfUsers(props: {
 
     return (
       <button
-        className="flex w-full items-center justify-between rounded-full px-2 py-1 hover:bg-gray-200"
+        className="flex w-full items-center justify-between rounded-full px-2 py-1 hover:bg-accent-100/50"
         key={user.id}
         onClick={(e) => e.stopPropagation()}
       >
