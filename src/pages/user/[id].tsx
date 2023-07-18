@@ -55,8 +55,7 @@ export default function ProfilePage() {
         />
         <h1 className="mb-2 text-2xl font-bold">Followers</h1>
         <div>
-          {followers &&
-            hasFollowers &&
+          {hasFollowers &&
             followers.map((follower) => {
               return (
                 <div key={follower.id} className="flex justify-between">
@@ -90,8 +89,7 @@ export default function ProfilePage() {
                 </div>
               );
             })}
-          {!followers ||
-            (followers.length === 0 && <div>something went wrong</div>)}
+          {!hasFollowers && <div>something went wrong</div>}
         </div>
       </dialog>
       <dialog ref={followingModal} className="w-4/5 max-w-lg rounded-lg">
@@ -102,8 +100,7 @@ export default function ProfilePage() {
         />
         <h1 className="mb-2 text-2xl font-bold">Following</h1>
         <div>
-          {following &&
-            following.length > 0 &&
+          {following.length > 0 &&
             following.map((follower) => {
               return (
                 <div key={follower.id} className="flex justify-between">
@@ -137,8 +134,7 @@ export default function ProfilePage() {
                 </div>
               );
             })}
-          {!following ||
-            (following.length === 0 && <div>something went wrong</div>)}
+          {!hasFollowing && <div>something went wrong</div>}
         </div>
       </dialog>
       <Navbar />
@@ -159,16 +155,12 @@ export default function ProfilePage() {
                 "flex min-w-0 flex-col items-center text-lg" +
                 (hasFollowers ? " cursor-pointer" : " contrast-50")
               }
+              onClick={() => {
+                if (!hasFollowers) return;
+                followersModal.current?.showModal();
+              }}
             >
-              <h3
-                className="font-semibold"
-                onClick={() => {
-                  if (!hasFollowers) return;
-                  followersModal.current?.showModal();
-                }}
-              >
-                Followers
-              </h3>
+              <h3 className="font-semibold">Followers</h3>
               <p>{followers.length}</p>
             </div>
             <div
@@ -176,16 +168,12 @@ export default function ProfilePage() {
                 "flex min-w-0 flex-col items-center text-lg" +
                 (hasFollowing ? " cursor-pointer" : " contrast-50")
               }
+              onClick={() => {
+                if (!hasFollowing) return;
+                followingModal.current?.showModal();
+              }}
             >
-              <h3
-                className="font-semibold"
-                onClick={() => {
-                  if (!hasFollowing) return;
-                  followingModal.current?.showModal();
-                }}
-              >
-                Following
-              </h3>
+              <h3 className="font-semibold">Following</h3>
               <p>{following.length}</p>
             </div>
           </div>
