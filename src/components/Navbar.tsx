@@ -16,19 +16,22 @@ export default function Navbar() {
           alt="creators club logo"
           width={64}
           height={64}
-          className="mr-2 inline-block align-middle"
+          className="mr-2 hidden align-middle lg:inline-block"
         />
         <p className="hidden bg-gradient-to-br from-primary-500 to-secondary-500 bg-clip-text font-cabin text-3xl font-extrabold text-transparent lg:inline-block lg:whitespace-pre-wrap lg:align-middle">
           {"Creators\nClub"}
         </p>
       </div>
-      <div className="my-2 hidden h-px w-full bg-slate-200 lg:block"></div>
+      <div className="my-2 hidden h-px w-full bg-gray-300 lg:block"></div>
       <ul className="flex items-center justify-evenly gap-2 lg:my-2 lg:flex-col">
         <li>
-          <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
+          <Link
+            href="/"
+            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+          >
             <CgFeed size={32} className="lg:mr-1 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Your Feed</p>
-          </button>
+          </Link>
         </li>
         <li>
           <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
