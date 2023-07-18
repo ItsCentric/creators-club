@@ -2,11 +2,13 @@ import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import toTitleCase from "~/utils/toTitleCase";
-import { BiSad } from "react-icons/bi";
+import { BiPencil, BiSad } from "react-icons/bi";
 import Navbar from "~/components/Navbar";
 import { createRef } from "react";
 import Link from "next/link";
 import { IoMdClose } from "react-icons/io";
+import { useUser } from "@clerk/nextjs";
+import RedirectToSettingsButton from "~/components/RedirectToSettingsButton";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -22,6 +24,7 @@ export default function ProfilePage() {
   const unfollowUser = api.users.unfollowUser.useMutation;
   const followersModal = createRef<HTMLDialogElement>();
   const followingModal = createRef<HTMLDialogElement>();
+  const { user: signedInUser } = useUser();
   if (!router.query.id) return <div>something went wrong!</div>;
   if (user.isInitialLoading || !followers || !following)
     return <UserSkeletonPage />;
@@ -92,20 +95,34 @@ export default function ProfilePage() {
             following.length > 0 &&
             following.map((follower) => {
               return (
-                <div key={follower.id}>
-                  <Image
-                    src={follower.profilePictureUrl}
-                    alt={`${follower.username}'s profile picture`}
-                    width={32}
-                    height={32}
-                    className="mr-2 inline-block rounded-full border-2 border-black align-middle"
-                  />
-                  <Link
-                    href={`/user/${follower.id}`}
-                    className="inline-block align-middle font-bold"
-                  >
-                    {toTitleCase(follower.username)}
+                <div key={follower.id} className="flex justify-between">
+                  <Link href={`/user/${follower.id}`}>
+                    <Image
+                      src={follower.profilePictureUrl}
+                      alt={`${follower.username}'s profile picture`}
+                      width={48}
+                      height={48}
+                      className="mr-2 inline-block rounded-full border-2 border-black align-middle"
+                    />
+                    <div className="inline-block align-middle">
+                      <p className="text-lg font-bold">
+                        {toTitleCase(follower.username)}
+                      </p>
+                      <p className="text-md -mt-1 text-gray-400">
+                        {`${follower.firstName ?? ""} ${
+                          follower.lastName ?? ""
+                        }`}
+                      </p>
+                    </div>
                   </Link>
+                  {!follower.isSelf && (
+                    <FollowButton
+                      userId={follower.id}
+                      followUserMutation={followUser}
+                      unfollowUserMutation={unfollowUser}
+                      trpcRouterContext={trpcRouterContext}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -168,12 +185,25 @@ export default function ProfilePage() {
             <p className="text-md text-gray-400">{name}</p>
           </div>
           <div>
-            <FollowButton
-              userId={userData.id ?? ""}
-              followUserMutation={followUser}
-              unfollowUserMutation={unfollowUser}
-              trpcRouterContext={trpcRouterContext}
-            />
+            {signedInUser?.id === userData.id && (
+              <RedirectToSettingsButton className="rounded-full bg-orange-400 px-4 py-2 hover:bg-orange-500">
+                <BiPencil
+                  size={32}
+                  className="mr-1 inline-block align-middle"
+                />
+                <p className="inline-block align-middle text-lg font-semibold">
+                  Edit Profile
+                </p>
+              </RedirectToSettingsButton>
+            )}
+            {signedInUser?.id !== userData.id && (
+              <FollowButton
+                userId={userData.id ?? ""}
+                followUserMutation={followUser}
+                unfollowUserMutation={unfollowUser}
+                trpcRouterContext={trpcRouterContext}
+              />
+            )}
           </div>
         </div>
         <div className="flex flex-grow flex-col items-center justify-center">
