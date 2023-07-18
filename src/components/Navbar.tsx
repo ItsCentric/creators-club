@@ -4,12 +4,11 @@ import { VscAccount } from "react-icons/vsc";
 import Image from "next/image";
 import { SignUpButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import toTitleCase from "~/utils/toTitleCase";
 
 export default function Navbar() {
-  const { user } = useUser();
-
   return (
-    <nav className="fixed bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:flex-grow lg:border-r">
+    <nav className="fixed bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:border-r lg:px-10">
       <div className="mx-auto w-fit">
         <Image
           src="/cclogo.png"
@@ -23,11 +22,11 @@ export default function Navbar() {
         </p>
       </div>
       <div className="my-2 hidden h-px w-full bg-gray-300 lg:block"></div>
-      <ul className="items-left flex justify-evenly gap-2 lg:my-2 lg:flex-col">
+      <ul className="items-left flex justify-evenly gap-4 lg:my-2 lg:flex-col lg:gap-0">
         <li>
           <Link
             href="/"
-            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
           >
             <AiOutlineHome size={32} className="lg:mr-2 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Your Feed</p>
@@ -36,7 +35,7 @@ export default function Navbar() {
         <li>
           <Link
             href="/"
-            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
           >
             <AiOutlineSearch size={32} className="lg:mr-2 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Search</p>
@@ -45,7 +44,7 @@ export default function Navbar() {
         <li>
           <Link
             href="/"
-            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
           >
             <IoChatbubblesOutline
               size={32}
@@ -56,32 +55,51 @@ export default function Navbar() {
             </p>
           </Link>
         </li>
-        <li className="lg:hidden">
-          <SignedIn>
-            {user && (
-              <Link href={`/user/${user.id}`}>
-                <Image
-                  src={user.imageUrl}
-                  width={32}
-                  height={32}
-                  alt={"current user profile page button"}
-                  className="rounded-full border-2 border-black"
-                />
-              </Link>
-            )}
-            {!user && (
-              <span className="block h-8 w-8 animate-pulse rounded-full bg-gray-300" />
-            )}
-          </SignedIn>
-          <SignedOut>
-            <SignUpButton>
-              <button className="flex items-center justify-center px-4 py-2">
-                <VscAccount size={32} />
-              </button>
-            </SignUpButton>
-          </SignedOut>
+        <li>
+          <UserButton />
         </li>
       </ul>
     </nav>
+  );
+}
+
+function UserButton() {
+  const { user } = useUser();
+
+  if (!user || !user.id || !user.username)
+    return (
+      <div className="flex items-center gap-2 lg:px-4 lg:py-2">
+        <span className="block h-8 w-8 animate-pulse rounded-full bg-gray-300" />
+        <span className="hidden h-4 w-24 animate-pulse rounded-full bg-gray-300 lg:block" />
+      </div>
+    );
+  return (
+    <>
+      <SignedOut>
+        <SignUpButton>
+          <button className="flex w-full items-center rounded-full hover:bg-primary-100/80 lg:px-4 lg:py-2">
+            <VscAccount size={32} className="lg:mr-2" />
+            <p className="hidden font-bold lg:block">Join the Club</p>
+          </button>
+        </SignUpButton>
+      </SignedOut>
+      <SignedIn>
+        <Link
+          className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
+          href={`/user/${user.id}`}
+        >
+          <Image
+            src={user.imageUrl}
+            width={32}
+            height={32}
+            alt={`${user.username}'s profile picture`}
+            className="rounded-full border-2 border-black lg:mr-2"
+          />
+          <h3 className="hidden font-montserrat font-semibold lg:block">
+            {toTitleCase(user?.username)}
+          </h3>
+        </Link>
+      </SignedIn>
+    </>
   );
 }

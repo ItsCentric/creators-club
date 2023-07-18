@@ -3,7 +3,6 @@ import { api } from "~/utils/api";
 import Image from "next/image";
 import toTitleCase from "~/utils/toTitleCase";
 import { BiPencil, BiSad } from "react-icons/bi";
-import Navbar from "~/components/Navbar";
 import { createRef, useEffect } from "react";
 import Link from "next/link";
 import { IoMdClose } from "react-icons/io";
@@ -58,7 +57,7 @@ export default function ProfilePage() {
   const hasFollowing = following.length >= 1;
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <>
       <dialog ref={followersModal} className="w-4/5 max-w-lg rounded-lg">
         <IoMdClose
           className="absolute right-2 top-2 cursor-pointer"
@@ -148,80 +147,74 @@ export default function ProfilePage() {
             })}
         </div>
       </dialog>
-      <Navbar />
-      <div className="flex h-full flex-grow-[8] flex-col">
-        <div className="grid grid-cols-2 place-items-center gap-1 border-b border-b-gray-200 px-4 py-8">
-          <div className="place-self-start lg:place-self-auto">
-            <Image
-              src={user.profilePictureUrl}
-              width={96}
-              height={96}
-              alt={`${user.username}'s profile picture`}
-              className="inline-block rounded-full border-2 border-black bg-gray-200 align-middle lg:mr-4"
-            />
+      <div className="grid grid-cols-2 place-items-center gap-1 border-b border-b-gray-200 px-4 py-8">
+        <div className="place-self-start lg:place-self-auto">
+          <Image
+            src={user.profilePictureUrl}
+            width={96}
+            height={96}
+            alt={`${user.username}'s profile picture`}
+            className="inline-block rounded-full border-2 border-black bg-gray-200 align-middle lg:mr-4"
+          />
+        </div>
+        <div className="flex max-w-full justify-evenly gap-4">
+          <div
+            className={
+              "flex min-w-0 flex-col items-center text-lg" +
+              (hasFollowers ? " cursor-pointer" : " contrast-50")
+            }
+            onClick={() => {
+              if (!hasFollowers) return;
+              followersModal.current?.showModal();
+            }}
+          >
+            <h3 className="font-semibold">Followers</h3>
+            <p>{followers.length}</p>
           </div>
-          <div className="flex max-w-full justify-evenly gap-4">
-            <div
-              className={
-                "flex min-w-0 flex-col items-center text-lg" +
-                (hasFollowers ? " cursor-pointer" : " contrast-50")
-              }
-              onClick={() => {
-                if (!hasFollowers) return;
-                followersModal.current?.showModal();
-              }}
-            >
-              <h3 className="font-semibold">Followers</h3>
-              <p>{followers.length}</p>
-            </div>
-            <div
-              className={
-                "flex min-w-0 flex-col items-center text-lg" +
-                (hasFollowing ? " cursor-pointer" : " contrast-50")
-              }
-              onClick={() => {
-                if (!hasFollowing) return;
-                followingModal.current?.showModal();
-              }}
-            >
-              <h3 className="font-semibold">Following</h3>
-              <p>{following.length}</p>
-            </div>
-          </div>
-          <div className="place-self-start lg:place-self-auto">
-            <h1 className="text-3xl font-semibold">
-              {toTitleCase(user.username)}
-            </h1>
-            <p className="text-md text-gray-400">{name}</p>
-          </div>
-          <div>
-            {signedInUser?.id === user.id && (
-              <RedirectToSettingsButton className="rounded-full bg-accent-400 px-4 py-2 hover:bg-accent-500">
-                <BiPencil
-                  size={32}
-                  className="mr-1 inline-block align-middle"
-                />
-                <p className="inline-block align-middle text-lg font-semibold">
-                  Edit Profile
-                </p>
-              </RedirectToSettingsButton>
-            )}
-            {signedInUser?.id !== user.id && (
-              <FollowButton
-                userId={user.id ?? ""}
-                followUserMutation={followUser}
-                unfollowUserMutation={unfollowUser}
-                trpcRouterContext={trpcRouterContext}
-              />
-            )}
+          <div
+            className={
+              "flex min-w-0 flex-col items-center text-lg" +
+              (hasFollowing ? " cursor-pointer" : " contrast-50")
+            }
+            onClick={() => {
+              if (!hasFollowing) return;
+              followingModal.current?.showModal();
+            }}
+          >
+            <h3 className="font-semibold">Following</h3>
+            <p>{following.length}</p>
           </div>
         </div>
-        <div className="flex flex-grow flex-col items-center justify-center">
-          <BiSad size={64} />
-          <p className="text-2xl font-bold">No posts</p>
+        <div className="place-self-start lg:place-self-auto">
+          <h1 className="text-3xl font-semibold">
+            {toTitleCase(user.username)}
+          </h1>
+          <p className="text-md text-gray-400">{name}</p>
+        </div>
+        <div>
+          {signedInUser?.id === user.id && (
+            <RedirectToSettingsButton className="rounded-full bg-accent-400 px-4 py-2 hover:bg-accent-500">
+              <BiPencil size={32} className="mr-1 inline-block align-middle" />
+              <p className="inline-block align-middle text-lg font-semibold">
+                Edit Profile
+              </p>
+            </RedirectToSettingsButton>
+          )}
+          {signedInUser?.id !== user.id && (
+            <FollowButton
+              userId={user.id ?? ""}
+              followUserMutation={followUser}
+              unfollowUserMutation={unfollowUser}
+              trpcRouterContext={trpcRouterContext}
+            />
+          )}
         </div>
       </div>
-    </div>
+      <div className="flex flex-grow flex-col items-center justify-center">
+        <BiSad size={64} />
+        <p className="text-2xl font-bold">No posts</p>
+      </div>
+    </>
   );
 }
 
