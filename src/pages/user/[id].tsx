@@ -9,17 +9,19 @@ import Link from "next/link";
 import { IoMdClose } from "react-icons/io";
 import { useUser } from "@clerk/nextjs";
 import RedirectToSettingsButton from "~/components/RedirectToSettingsButton";
+import NotFound from "../404";
+import ClientError from "~/components/Error";
 
 export default function ProfilePage() {
   const router = useRouter();
   const trpcRouterContext = api.useContext();
-  const user = api.users.getUser.useQuery(router.query.id as string);
-  const { data: followers } = api.users.getFollowers.useQuery(
-    router.query.id as string
-  );
-  const { data: following } = api.users.getFollowing.useQuery(
-    router.query.id as string
-  );
+  const queriedUserId = router.query.id as string;
+  const { data: user, error: getUserError } =
+    api.users.getUser.useQuery(queriedUserId);
+  const { data: followers, error: getFollowersError } =
+    api.users.getFollowers.useQuery(queriedUserId);
+  const { data: following, error: getFollowingError } =
+    api.users.getFollowing.useQuery(queriedUserId);
   const followUser = api.users.followUser.useMutation;
   const unfollowUser = api.users.unfollowUser.useMutation;
   const followersModal = createRef<HTMLDialogElement>();
@@ -35,13 +37,23 @@ export default function ProfilePage() {
       currentFollowingModal?.close();
     };
   });
-  if (!router.query.id) return <div>something went wrong!</div>;
-  if (user.isInitialLoading || !followers || !following)
-    return <UserSkeletonPage />;
-  if (!user.data || user.error) return <div>something went wrong!</div>;
+  if (!router.query.id) NotFound();
+  if (!user || !followers || !following) return <UserSkeletonPage />;
+  if (getUserError || getFollowingError || getFollowersError) {
+    const error = getUserError || getFollowingError || getFollowersError;
 
-  const userData = user.data;
-  const name = `${userData.firstName ?? ""} ${userData.lastName ?? ""}`;
+    return (
+      <ClientError
+        httpCode={error?.data?.httpStatus}
+        statusCode={error?.data?.code}
+        message={error?.message}
+      >
+        Sorry, something went wrong. Please try again.
+      </ClientError>
+    );
+  }
+
+  const name = `${user.firstName ?? ""} ${user.lastName ?? ""}`;
   const hasFollowers = followers.length >= 1;
   const hasFollowing = following.length >= 1;
 
@@ -134,7 +146,6 @@ export default function ProfilePage() {
                 </div>
               );
             })}
-          {!hasFollowing && <div>something went wrong</div>}
         </div>
       </dialog>
       <Navbar />
@@ -142,10 +153,10 @@ export default function ProfilePage() {
         <div className="grid grid-cols-2 place-items-center gap-1 border-b border-b-gray-200 px-4 py-8">
           <div className="place-self-start lg:place-self-auto">
             <Image
-              src={userData.profilePictureUrl}
+              src={user.profilePictureUrl}
               width={96}
               height={96}
-              alt={`${userData.username}'s profile picture`}
+              alt={`${user.username}'s profile picture`}
               className="inline-block rounded-full border-2 border-black bg-gray-200 align-middle lg:mr-4"
             />
           </div>
@@ -179,12 +190,12 @@ export default function ProfilePage() {
           </div>
           <div className="place-self-start lg:place-self-auto">
             <h1 className="text-3xl font-semibold">
-              {toTitleCase(userData.username)}
+              {toTitleCase(user.username)}
             </h1>
             <p className="text-md text-gray-400">{name}</p>
           </div>
           <div>
-            {signedInUser?.id === userData.id && (
+            {signedInUser?.id === user.id && (
               <RedirectToSettingsButton className="rounded-full bg-accent-400 px-4 py-2 hover:bg-accent-500">
                 <BiPencil
                   size={32}
@@ -195,9 +206,9 @@ export default function ProfilePage() {
                 </p>
               </RedirectToSettingsButton>
             )}
-            {signedInUser?.id !== userData.id && (
+            {signedInUser?.id !== user.id && (
               <FollowButton
-                userId={userData.id ?? ""}
+                userId={user.id ?? ""}
                 followUserMutation={followUser}
                 unfollowUserMutation={unfollowUser}
                 trpcRouterContext={trpcRouterContext}
@@ -231,7 +242,13 @@ function FollowButton(props: {
       await props.trpcRouterContext.users.invalidate();
     },
   }).mutate;
-  const isFollowing = api.users.isFollowing.useQuery(userId).data;
+  const { data: isFollowing, error } = api.users.isFollowing.useQuery(userId);
+
+  if (error) {
+    <ClientError httpCode={error.data?.httpStatus} message={error.message}>
+      Could not determine if following.
+    </ClientError>;
+  }
 
   if (isFollowing) {
     return (
