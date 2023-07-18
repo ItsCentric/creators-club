@@ -23,7 +23,7 @@ export default function Navbar() {
         </p>
       </div>
       <div className="my-2 hidden h-px w-full bg-gray-300 lg:block"></div>
-      <ul className="flex items-center justify-evenly gap-2 lg:my-2 lg:flex-col">
+      <ul className="items-left flex justify-evenly gap-2 lg:my-2 lg:flex-col">
         <li>
           <Link
             href="/"
@@ -34,13 +34,19 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
+          <Link
+            href="/"
+            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+          >
             <AiOutlineSearch size={32} className="lg:mr-2 lg:inline-block" />
             <p className="hidden font-semibold lg:inline-block">Search</p>
-          </button>
+          </Link>
         </li>
         <li>
-          <button className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50">
+          <Link
+            href="/"
+            className="flex items-center rounded-full px-4 py-2 hover:bg-accent-100/50"
+          >
             <IoChatbubblesOutline
               size={32}
               className="lg:mr-2 lg:inline-block"
@@ -48,7 +54,7 @@ export default function Navbar() {
             <p className="hidden font-semibold lg:inline-block">
               Conversations
             </p>
-          </button>
+          </Link>
         </li>
         <li className="lg:hidden">
           <SignedIn>
