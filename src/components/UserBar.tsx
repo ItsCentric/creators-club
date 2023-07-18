@@ -1,6 +1,12 @@
 import Image from "next/image";
 import ListOfUsers from "./ListOfUsers";
-import { SignUpButton, SignOutButton, useUser } from "@clerk/nextjs";
+import {
+  SignUpButton,
+  SignOutButton,
+  useUser,
+  SignedIn,
+  SignedOut,
+} from "@clerk/nextjs";
 import { FaSignOutAlt } from "react-icons/fa";
 import { IoPeopleOutline } from "react-icons/io5";
 import Link from "next/link";
@@ -9,7 +15,6 @@ import RedirectToSettingsButton from "./RedirectToSettingsButton";
 import { FiSettings } from "react-icons/fi";
 
 export default function UserBar() {
-  const userState = useUser();
   const users = [
     {
       id: "12jfigi3j25j2kasfd1234855rlka",
@@ -36,8 +41,8 @@ export default function UserBar() {
 
   return (
     <div className="hidden min-w-max flex-grow border-l border-gray-300 p-4 lg:flex lg:flex-col lg:gap-8">
-      <UserButton userState={userState} />
-      {userState.isSignedIn && (
+      <UserButton />
+      <SignedIn>
         <ListOfUsers
           users={users}
           className="w-full min-w-max p-2"
@@ -47,8 +52,6 @@ export default function UserBar() {
           }
           subtextData="followerCount"
         />
-      )}
-      {userState.isSignedIn && (
         <ListOfUsers
           users={users}
           className="w-full p-2"
@@ -57,71 +60,68 @@ export default function UserBar() {
           subtextData="newPosts"
           reverseSubtext={true}
         />
-      )}
 
-      {userState.isSignedIn && (
         <RedirectToSettingsButton className="mx-auto mt-auto w-fit self-end rounded-full px-4 py-2 hover:bg-accent-100/50">
           <FiSettings size={32} className="mr-2 inline-block" />
           <p className="inline-block font-montserrat font-semibold">Settings</p>
         </RedirectToSettingsButton>
-      )}
+      </SignedIn>
     </div>
   );
 }
 
-function UserButton(props: { userState: ReturnType<typeof useUser> }) {
-  const userState = props.userState;
-
-  if (userState.isLoaded && !userState.isSignedIn) {
-    return (
-      <div className="mx-auto">
-        <h3 className="mb-2 font-montserrat text-2xl font-semibold">
-          New around here?
-        </h3>
-        <SignUpButton mode="modal">
-          <button className="mx-auto block cursor-pointer rounded-full bg-primary-500 px-4 py-2 font-montserrat font-semibold text-white hover:bg-primary-600">
-            Join the club
-          </button>
-        </SignUpButton>
-      </div>
-    );
-  }
-
-  const user = userState.user;
+function UserButton() {
+  const { user } = useUser();
 
   return (
-    <Link
-      className="flex items-center rounded-full hover:bg-accent-100/50"
-      href={`/user/${user?.id ?? ""}`}
-    >
-      {user?.imageUrl ? (
-        <Image
-          src={user?.imageUrl ?? ""}
-          width={64}
-          height={64}
-          alt={`${user.username ?? "user"}'s profile picture`}
-          className="mr-2 rounded-full border-2 border-black bg-gray-200"
-        />
-      ) : (
-        <div className="mr-2 h-16 w-16 rounded-full border-2 border-black bg-gray-200"></div>
-      )}
-      <h3 className="font-montserrat text-2xl font-semibold">
-        {user?.username
-          ? toTitleCase(user?.username ?? "user")
-          : skeletonText()}
-      </h3>
-      <button
-        className="ml-auto rounded-full p-2 text-secondary-500 hover:text-secondary-600"
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
-      >
-        <SignOutButton>
-          <FaSignOutAlt size={24} />
-        </SignOutButton>
-      </button>
-    </Link>
+    <>
+      <SignedOut>
+        <div className="mx-auto">
+          <h3 className="mb-2 font-montserrat text-2xl font-semibold">
+            New around here?
+          </h3>
+          <SignUpButton mode="modal">
+            <button className="mx-auto block cursor-pointer rounded-full bg-primary-500 px-4 py-2 font-montserrat font-semibold text-white hover:bg-primary-600">
+              Join the club
+            </button>
+          </SignUpButton>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <Link
+          className="flex items-center rounded-full hover:bg-accent-100/50"
+          href={`/user/${user?.id ?? ""}`}
+        >
+          {user?.imageUrl ? (
+            <Image
+              src={user?.imageUrl ?? ""}
+              width={64}
+              height={64}
+              alt={`${user.username ?? "user"}'s profile picture`}
+              className="mr-2 rounded-full border-2 border-black bg-gray-200"
+            />
+          ) : (
+            <div className="mr-2 h-16 w-16 rounded-full border-2 border-black bg-gray-200"></div>
+          )}
+          <h3 className="font-montserrat text-2xl font-semibold">
+            {user?.username
+              ? toTitleCase(user?.username ?? "user")
+              : skeletonText()}
+          </h3>
+          <button
+            className="ml-auto rounded-full p-2 text-secondary-500 hover:text-secondary-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+          >
+            <SignOutButton>
+              <FaSignOutAlt size={24} />
+            </SignOutButton>
+          </button>
+        </Link>
+      </SignedIn>
+    </>
   );
 }
 
