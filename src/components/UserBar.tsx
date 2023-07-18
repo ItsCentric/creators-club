@@ -60,7 +60,7 @@ export default function UserBar() {
       )}
 
       {userState.isSignedIn && (
-        <RedirectToSettingsButton className="mx-auto mt-auto w-fit self-end rounded-full px-4 py-2 hover:bg-gray-200">
+        <RedirectToSettingsButton className="mx-auto mt-auto w-fit self-end rounded-full px-4 py-2 hover:bg-accent-100/50">
           <FiSettings size={32} className="mr-2 inline-block" />
           <p className="inline-block font-montserrat font-semibold">Settings</p>
         </RedirectToSettingsButton>
@@ -79,7 +79,7 @@ function UserButton(props: { userState: ReturnType<typeof useUser> }) {
           New around here?
         </h3>
         <SignUpButton mode="modal">
-          <button className="mx-auto block cursor-pointer rounded-full bg-red-500 px-4 py-2 font-montserrat font-semibold text-white hover:bg-red-600">
+          <button className="mx-auto block cursor-pointer rounded-full bg-primary-500 px-4 py-2 font-montserrat font-semibold text-white hover:bg-primary-600">
             Join the club
           </button>
         </SignUpButton>
@@ -91,7 +91,7 @@ function UserButton(props: { userState: ReturnType<typeof useUser> }) {
 
   return (
     <Link
-      className="flex items-center rounded-full hover:bg-gray-200"
+      className="flex items-center rounded-full hover:bg-accent-100/50"
       href={`/user/${user?.id ?? ""}`}
     >
       {user?.imageUrl ? (
@@ -111,7 +111,7 @@ function UserButton(props: { userState: ReturnType<typeof useUser> }) {
           : skeletonText()}
       </h3>
       <button
-        className="ml-auto rounded-full p-2 text-red-500 hover:text-red-600"
+        className="ml-auto rounded-full p-2 text-secondary-500 hover:text-secondary-600"
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
