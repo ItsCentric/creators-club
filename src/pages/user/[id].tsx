@@ -4,7 +4,7 @@ import Image from "next/image";
 import toTitleCase from "~/utils/toTitleCase";
 import { BiPencil, BiSad } from "react-icons/bi";
 import Navbar from "~/components/Navbar";
-import { createRef } from "react";
+import { createRef, useEffect } from "react";
 import Link from "next/link";
 import { IoMdClose } from "react-icons/io";
 import { useUser } from "@clerk/nextjs";
@@ -25,10 +25,21 @@ export default function ProfilePage() {
   const followersModal = createRef<HTMLDialogElement>();
   const followingModal = createRef<HTMLDialogElement>();
   const { user: signedInUser } = useUser();
+
+  useEffect(() => {
+    const currentFollowersModal = followersModal.current;
+    const currentFollowingModal = followingModal.current;
+
+    return () => {
+      currentFollowersModal?.close();
+      currentFollowingModal?.close();
+    };
+  });
   if (!router.query.id) return <div>something went wrong!</div>;
   if (user.isInitialLoading || !followers || !following)
     return <UserSkeletonPage />;
   if (!user.data || user.error) return <div>something went wrong!</div>;
+
   const userData = user.data;
   const name = `${userData.firstName ?? ""} ${userData.lastName ?? ""}`;
   const hasFollowers = followers.length >= 1;
