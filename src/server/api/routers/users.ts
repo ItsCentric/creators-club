@@ -39,12 +39,16 @@ export const userRouter = createTRPCRouter({
     .input(z.string())
     .query(async ({ input: userId, ctx }) => {
       const clerkUser = await clerkClient.users.getUser(userId);
-      const dbUser = await ctx.prisma.user.findUnique({
+      if (clerkUser.username === null)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `User of ID ${userId} does not exist`,
+        });
+      const dbUser = await ctx.prisma.user.findUniqueOrThrow({
         where: {
           id: clerkUser.id,
         },
       });
-      if (clerkUser.username === null) throw new Error("Username is null");
 
       const userData = {
         ...dbUser,
