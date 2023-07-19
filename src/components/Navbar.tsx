@@ -65,6 +65,7 @@ export default function Navbar() {
 
 function UserButton() {
   const { user } = useUser();
+  console.log(user, user?.id, user?.username);
 
   if (!user || !user.id || !user.username)
     return (
