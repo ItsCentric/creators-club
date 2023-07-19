@@ -64,10 +64,9 @@ export default function Navbar() {
 }
 
 function UserButton() {
-  const { user } = useUser();
-  console.log(user, user?.id, user?.username);
+  const { user, isLoaded: isUserLoaded } = useUser();
 
-  if (!user || !user.id || !user.username)
+  if (!isUserLoaded)
     return (
       <div className="flex items-center gap-2 lg:px-4 lg:py-2">
         <span className="block h-8 w-8 animate-pulse rounded-full bg-gray-300" />
@@ -87,17 +86,17 @@ function UserButton() {
       <SignedIn>
         <Link
           className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-          href={`/user/${user.id}`}
+          href={`/user/${user?.id ?? ""}`}
         >
           <Image
-            src={user.imageUrl}
+            src={user?.imageUrl ?? ""}
             width={32}
             height={32}
-            alt={`${user.username}'s profile picture`}
+            alt={`${user?.username ?? ""}'s profile picture`}
             className="rounded-full border-2 border-black lg:mr-2"
           />
           <h3 className="hidden font-montserrat font-semibold lg:block">
-            {toTitleCase(user?.username)}
+            {toTitleCase(user?.username ?? "")}
           </h3>
         </Link>
       </SignedIn>
