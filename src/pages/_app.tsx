@@ -3,6 +3,7 @@ import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cabin, montserrat, yantramanav } from "~/utils/fonts";
+import Layout from "~/components/Layout";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
@@ -22,7 +23,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <main
         className={`${cabin.variable} ${montserrat.variable} ${yantramanav.variable}`}
       >
-        <Component {...pageProps} />
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
       </main>
     </ClerkProvider>
   );

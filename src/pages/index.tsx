@@ -1,7 +1,5 @@
 import Head from "next/head";
 import HomeFeed from "~/components/HomeFeed";
-import Navbar from "~/components/Navbar";
-import UserBar from "~/components/UserBar";
 
 export default function Home() {
   return (
@@ -15,11 +13,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex h-full flex-col lg:flex-row">
-        <Navbar />
-        <HomeFeed />
-        <UserBar />
-      </main>
+      <HomeFeed />
     </>
   );
 }
