@@ -11,13 +11,13 @@ const config = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "placehold.co",
+        hostname: "img.clerk.com",
         port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "img.clerk.com",
+        hostname: "images.clerk.dev",
         port: "",
         pathname: "/**",
       },
