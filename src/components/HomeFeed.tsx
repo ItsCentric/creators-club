@@ -63,7 +63,20 @@ export default function HomeFeed() {
           </p>
         </Link>
         <div>
-          <p className="pt-2 font-montserrat">{post.content}</p>
+          {post.media && (
+            <Image
+              src={post.media}
+              alt={post.content}
+              height={400}
+              width={400}
+              className="mx-auto aspect-square object-cover"
+            />
+          )}
+          <p
+            className={"pt-2 font-montserrat" + (post.media ? " text-sm" : "")}
+          >
+            {post.content}
+          </p>
         </div>
       </div>
     );

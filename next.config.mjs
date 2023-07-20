@@ -21,6 +21,18 @@ const config = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.gravatar.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "creators-club-virginia.s3.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 

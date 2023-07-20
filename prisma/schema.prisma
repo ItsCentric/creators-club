@@ -21,8 +21,8 @@ model Post {
     author    User     @relation(fields: [authorId], references: [id])
     authorId  String
     createdAt DateTime @default(now())
+    media     String?
     content   String
-    caption   String?
 
     @@index([authorId])
 }

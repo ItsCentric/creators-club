@@ -60,14 +60,14 @@ export const postsRouter = createTRPCRouter({
     .input(
       z.object({
         content: z.string(),
-        caption: z.optional(z.string()),
+        media: z.optional(z.string()),
       })
     )
     .query(async ({ input, ctx }) => {
       const post = await ctx.prisma.post.create({
         data: {
           content: input.content,
-          caption: input.caption,
+          media: input.media,
           authorId: ctx.userId,
         },
       });
