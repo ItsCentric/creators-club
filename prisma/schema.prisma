@@ -22,7 +22,7 @@ model Post {
     authorId  String
     createdAt DateTime @default(now())
     media     String?
-    content   String
+    content   String   @db.VarChar(1000)
 
     @@index([authorId])
 }

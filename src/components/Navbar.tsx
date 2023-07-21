@@ -8,7 +8,7 @@ import toTitleCase from "~/utils/toTitleCase";
 
 export default function Navbar() {
   return (
-    <nav className="fixed bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:border-r lg:px-10">
+    <nav className="sticky bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:border-r lg:px-10">
       <div className="mx-auto w-fit">
         <Image
           src="/cclogo.png"
