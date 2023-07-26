@@ -5,6 +5,9 @@ import Image from "next/image";
 import { SignUpButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import toTitleCase from "~/utils/toTitleCase";
+import { Button } from "~/components/ui/button";
+import { Separator } from "./ui/separator";
+import { Skeleton } from "./ui/skeleton";
 
 export default function Navbar() {
   return (
@@ -17,43 +20,40 @@ export default function Navbar() {
           height={64}
           className="mr-2 hidden align-middle lg:inline-block"
         />
-        <p className="hidden bg-gradient-to-br from-primary-500 to-secondary-500 bg-clip-text font-cabin text-3xl font-extrabold text-transparent lg:inline-block lg:whitespace-pre-wrap lg:align-middle">
+        <p className="hidden bg-gradient-to-br from-primary to-secondary bg-clip-text font-cabin text-3xl font-extrabold text-transparent lg:inline-block lg:whitespace-pre-wrap lg:align-middle">
           {"Creators\nClub"}
         </p>
       </div>
-      <div className="my-2 hidden h-px w-full bg-gray-300 lg:block"></div>
-      <ul className="items-left flex justify-evenly gap-4 lg:my-2 lg:flex-col lg:gap-0">
+      <Separator className="my-2" />
+      <ul className="items-left flex justify-evenly gap-4 lg:flex-col lg:gap-1">
         <li>
-          <Link
-            href="/"
-            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-          >
-            <AiOutlineHome size={32} className="lg:mr-2 lg:inline-block" />
-            <p className="hidden font-semibold lg:inline-block">Your Feed</p>
-          </Link>
+          <Button asChild variant={"ghost"}>
+            <Link href="/">
+              <AiOutlineHome size={32} className="lg:mr-2 lg:inline-block" />
+              <p className="hidden font-semibold lg:inline-block">Your Feed</p>
+            </Link>
+          </Button>
         </li>
         <li>
-          <Link
-            href="/"
-            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-          >
-            <AiOutlineSearch size={32} className="lg:mr-2 lg:inline-block" />
-            <p className="hidden font-semibold lg:inline-block">Search</p>
-          </Link>
+          <Button asChild variant={"ghost"}>
+            <Link href="/">
+              <AiOutlineSearch size={32} className="lg:mr-2 lg:inline-block" />
+              <p className="hidden font-semibold lg:inline-block">Search</p>
+            </Link>
+          </Button>
         </li>
         <li>
-          <Link
-            href="/"
-            className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-          >
-            <IoChatbubblesOutline
-              size={32}
-              className="lg:mr-2 lg:inline-block"
-            />
-            <p className="hidden font-semibold lg:inline-block">
-              Conversations
-            </p>
-          </Link>
+          <Button asChild variant={"ghost"}>
+            <Link href="/">
+              <IoChatbubblesOutline
+                size={32}
+                className="lg:mr-2 lg:inline-block"
+              />
+              <p className="hidden font-semibold lg:inline-block">
+                Conversations
+              </p>
+            </Link>
+          </Button>
         </li>
         <li>
           <UserButton />
@@ -69,36 +69,38 @@ function UserButton() {
   if (!isUserLoaded)
     return (
       <div className="flex items-center gap-2 lg:px-4 lg:py-2">
-        <span className="block h-8 w-8 animate-pulse rounded-full bg-gray-300" />
-        <span className="hidden h-4 w-24 animate-pulse rounded-full bg-gray-300 lg:block" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-4 w-24 rounded-full" />
       </div>
     );
   return (
     <>
       <SignedOut>
         <SignUpButton>
-          <button className="flex w-full items-center rounded-full hover:bg-primary-100/80 lg:px-4 lg:py-2">
+          <Button variant="ghost">
             <VscAccount size={32} className="lg:mr-2" />
             <p className="hidden font-bold lg:block">Join the Club</p>
-          </button>
+          </Button>
         </SignUpButton>
       </SignedOut>
       <SignedIn>
-        <Link
-          className="flex items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-          href={`/user/${user?.id ?? ""}`}
-        >
-          <Image
-            src={user?.imageUrl ?? ""}
-            width={32}
-            height={32}
-            alt={`${user?.username ?? ""}'s profile picture`}
-            className="rounded-full border-2 border-black lg:mr-2"
-          />
-          <h3 className="hidden font-montserrat font-semibold lg:block">
-            {toTitleCase(user?.username ?? "")}
-          </h3>
-        </Link>
+        <Button asChild variant="ghost">
+          <Link
+            className="hover:bg-accent-100/50 flex items-center rounded-full lg:px-4 lg:py-2"
+            href={`/user/${user?.id ?? ""}`}
+          >
+            <Image
+              src={user?.imageUrl ?? ""}
+              width={32}
+              height={32}
+              alt={`${user?.username ?? ""}'s profile picture`}
+              className="rounded-full border-2 border-black lg:mr-2"
+            />
+            <h3 className="hidden font-montserrat font-semibold lg:block">
+              {toTitleCase(user?.username ?? "")}
+            </h3>
+          </Link>
+        </Button>
       </SignedIn>
     </>
   );
