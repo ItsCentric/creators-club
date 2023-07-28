@@ -2,6 +2,9 @@ import { clerkClient } from "@clerk/nextjs";
 import { createTRPCRouter, privateProcedure, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { randomUUID } from "crypto";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const postsRouter = createTRPCRouter({
   getPosts: publicProcedure
@@ -59,11 +62,11 @@ export const postsRouter = createTRPCRouter({
   createPost: privateProcedure
     .input(
       z.object({
-        content: z.string(),
+        content: z.string().trim().min(1).max(1000),
         media: z.optional(z.string()),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       const post = await ctx.prisma.post.create({
         data: {
           content: input.content,
@@ -73,5 +76,29 @@ export const postsRouter = createTRPCRouter({
       });
 
       return post;
+    }),
+
+  generatePostMediaUploadUrl: privateProcedure
+    .input(z.string().startsWith("image/"))
+    .query(async ({ ctx, input: fileTypeInput }) => {
+      const fileType = fileTypeInput.split("/")[1];
+      if (!fileType) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const Key = `${ctx.userId}/${randomUUID()}.${fileType}`;
+
+      const s3Parameters = {
+        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
+        Key,
+        ContentType: `image/${fileType}`,
+      };
+      const signedUrl = await getSignedUrl(
+        ctx.s3Client,
+        new PutObjectCommand(s3Parameters),
+        { expiresIn: 60 * 5 }
+      );
+
+      return {
+        signedUrl,
+        key: Key,
+      };
     }),
 });
