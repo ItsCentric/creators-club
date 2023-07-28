@@ -12,7 +12,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
-import { S3Client } from "@aws-sdk/client-s3";
+import { s3Client } from "~/server/s3";
 
 /**
  * 1. CONTEXT
@@ -32,14 +32,6 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
   const authObject = getAuth(req);
   const userId = authObject.userId;
-  const s3Client = new S3Client({
-    apiVersion: "2006-03-01",
-    region: process.env.NEXT_PUBLIC_AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
-  });
 
   return {
     prisma,
