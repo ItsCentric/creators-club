@@ -13,4 +13,16 @@ model User {
     followers User[]   @relation("follows")
     following User[]   @relation("follows")
     createdAt DateTime @default(now())
+    Posts     Post[]
+}
+
+model Post {
+    id        String   @id @default(uuid())
+    author    User     @relation(fields: [authorId], references: [id])
+    authorId  String
+    createdAt DateTime @default(now())
+    media     String?
+    content   String   @db.VarChar(1000)
+
+    @@index([authorId])
 }
