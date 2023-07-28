@@ -212,17 +212,19 @@ export default function Navbar() {
               </p>
             </Link>
           </li>
-          <li>
-            <button
-              onClick={() => createPostModal.current?.showModal()}
-              className="flex w-full items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
-            >
-              <AiOutlineEdit size={32} className="lg:mr-2 lg:inline-block" />
-              <p className="hidden font-semibold lg:inline-block">
-                Create Post
-              </p>
-            </button>
-          </li>
+          <SignedIn>
+            <li>
+              <button
+                onClick={() => createPostModal.current?.showModal()}
+                className="flex w-full items-center rounded-full hover:bg-accent-100/50 lg:px-4 lg:py-2"
+              >
+                <AiOutlineEdit size={32} className="lg:mr-2 lg:inline-block" />
+                <p className="hidden font-semibold lg:inline-block">
+                  Create Post
+                </p>
+              </button>
+            </li>
+          </SignedIn>
           <li>
             <UserButton />
           </li>
