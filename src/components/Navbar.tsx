@@ -27,7 +27,7 @@ export default function Navbar() {
   } = api.posts.generatePostMediaUploadUrl.useQuery(
     (formData?.get("media") as File)?.type,
     {
-      enabled: !!formData,
+      enabled: !!formData && !!mediaPreview,
       retry: false,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
@@ -38,7 +38,6 @@ export default function Navbar() {
       postForm.current?.reset();
       setCharacterCount(0);
       createPostModal.current?.close();
-      setMediaPreview(undefined);
       await trpcContext.posts.getPosts.invalidate();
     },
   });
@@ -72,18 +71,16 @@ export default function Navbar() {
       });
     }
 
-    void uploadMedia().catch((e) => {
-      console.error(e);
-      alert("An error occurred while creating your post.");
+    void uploadMedia().catch((e: Error) => {
+      alert("An error occurred while creating your post.\n\n" + e.message);
     });
   }, [
-    uploadUrlData,
-    isGeneratingUrl,
-    formData,
     createPost,
-    trpcContext.posts.getPosts,
+    formData,
+    isGeneratingUrl,
     isUrlError,
-    urlError,
+    uploadUrlData,
+    urlError?.message,
   ]);
 
   return (
@@ -91,7 +88,11 @@ export default function Navbar() {
       <dialog
         className="w-4/5 max-w-lg rounded-lg"
         ref={createPostModal}
-        onClose={() => postForm.current?.reset()}
+        onClose={() => {
+          postForm.current?.reset();
+          setMediaPreview(undefined);
+          setCharacterCount(0);
+        }}
       >
         <IoMdClose
           className="absolute right-2 top-2 cursor-pointer hover:text-black/80"
@@ -103,7 +104,10 @@ export default function Navbar() {
           ref={postForm}
           onSubmit={(e) => {
             e.preventDefault();
-            setFormData(new FormData(e.currentTarget));
+            const formData = new FormData(e.currentTarget);
+            if (formData.get("media") && !mediaPreview)
+              formData.delete("media");
+            setFormData(formData);
           }}
           className="group mt-2 flex flex-col gap-2"
         >
@@ -140,7 +144,9 @@ export default function Navbar() {
               <button
                 className="rounded-lg bg-red-500 p-1 text-white enabled:hover:bg-red-600 disabled:opacity-50"
                 disabled={!mediaPreview}
-                onClick={() => setMediaPreview(undefined)}
+                onClick={() => {
+                  setMediaPreview(undefined);
+                }}
               >
                 <BsTrash size={20} />
               </button>
