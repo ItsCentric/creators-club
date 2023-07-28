@@ -19,16 +19,20 @@ export default function Navbar() {
   const [formData, setFormData] = useState<FormData>();
   const [mediaPreview, setMediaPreview] = useState<File>();
   const [characterCount, setCharacterCount] = useState(0);
-  const { data: uploadUrlData, isFetching: isGeneratingUrl } =
-    api.posts.generatePostMediaUploadUrl.useQuery(
-      (formData?.get("media") as File)?.type,
-      {
-        enabled: !!formData,
-        retry: false,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-      }
-    );
+  const {
+    data: uploadUrlData,
+    isFetching: isGeneratingUrl,
+    isError: isUrlError,
+    error: urlError,
+  } = api.posts.generatePostMediaUploadUrl.useQuery(
+    (formData?.get("media") as File)?.type,
+    {
+      enabled: !!formData,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    }
+  );
   const { mutate: createPost } = api.posts.createPost.useMutation({
     onSuccess: async () => {
       postForm.current?.reset();
@@ -42,11 +46,21 @@ export default function Navbar() {
   useEffect(() => {
     async function uploadMedia() {
       if (!formData || isGeneratingUrl) return;
+      const acceptedMediaTypes = z
+        .string()
+        .refine((type) =>
+          ["image/png", "image/jpg", "image/jpeg"].includes(type)
+        );
       setFormData(undefined);
       const media = formData.get("media") as File | null;
       const content = formData.get("postContent") as string;
-      if (media && uploadUrlData)
+      if (!content) throw new Error("Content is required.");
+      if (isUrlError) throw new Error(urlError?.message);
+      if (media && uploadUrlData) {
+        if (!acceptedMediaTypes.safeParse(media.type).success)
+          throw new Error("Invalid media type");
         await axios.put(uploadUrlData.signedUrl, media);
+      }
       const mediaUrl = uploadUrlData?.key
         ? `https://${
             process.env.NEXT_PUBLIC_AWS_BUCKET ?? ""
@@ -58,13 +72,18 @@ export default function Navbar() {
       });
     }
 
-    void uploadMedia();
+    void uploadMedia().catch((e) => {
+      console.error(e);
+      alert("An error occurred while creating your post.");
+    });
   }, [
     uploadUrlData,
     isGeneratingUrl,
     formData,
     createPost,
     trpcContext.posts.getPosts,
+    isUrlError,
+    urlError,
   ]);
 
   return (
@@ -130,7 +149,7 @@ export default function Navbar() {
               <input
                 type="file"
                 id="postMedia"
-                accept="image/png image/jpeg"
+                accept=".png, .jpg, .jpeg"
                 name="media"
                 className="h-64 w-full opacity-0"
                 onChange={(e) => {
