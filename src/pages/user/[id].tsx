@@ -17,10 +17,12 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Skeleton } from "~/components/ui/skeleton";
+import { type SimplifiedUser } from "~/server/api/routers/users";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const trpcRouterContext = api.useContext();
+
   const queriedUserId = router.query.id as string;
   const { data: user, error: getUserError } = api.users.getUser.useQuery(
     queriedUserId,
@@ -34,11 +36,9 @@ export default function ProfilePage() {
     api.users.getFollowing.useQuery(queriedUserId, {
       enabled: !!queriedUserId,
     });
-  const followUser = api.users.followUser.useMutation;
-  const unfollowUser = api.users.unfollowUser.useMutation;
   const { user: signedInUser } = useUser();
 
-  if (!router.query.id) NotFound();
+  if (!router.query.id) return NotFound();
   if (!user || !followers || !following) return <UserSkeletonPage />;
   if (getUserError || getFollowingError || getFollowersError) {
     const error = getUserError || getFollowingError || getFollowersError;
@@ -71,111 +71,26 @@ export default function ProfilePage() {
           />
         </div>
         <div className="flex max-w-full justify-evenly gap-4">
-          <Dialog>
-            <DialogTrigger
-              disabled={!hasFollowers}
-              className={!hasFollowers ? "opacity-70" : ""}
-            >
-              <div className="flex min-w-0 flex-col items-center text-lg">
-                <h3 className="font-semibold">Followers</h3>
-                <p>{followers.length}</p>
-              </div>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Followers</DialogTitle>
-              </DialogHeader>
-              <div>
-                {hasFollowers &&
-                  followers.map((follower) => {
-                    return (
-                      <div key={follower.id} className="flex justify-between">
-                        <Link href={`/user/${follower.id}`}>
-                          <Image
-                            src={follower.profilePictureUrl}
-                            alt={`${follower.username}'s profile picture`}
-                            width={48}
-                            height={48}
-                            className="mr-2 inline-block rounded-full border-2 border-black align-middle"
-                          />
-                          <div className="inline-block align-middle">
-                            <p className="text-lg font-bold">
-                              {toTitleCase(follower.username)}
-                            </p>
-                            <p className="text-md -mt-1 text-gray-400">
-                              {`${follower.firstName ?? ""} ${
-                                follower.lastName ?? ""
-                              }`}
-                            </p>
-                          </div>
-                        </Link>
-                        {!follower.isSelf && (
-                          <FollowButton
-                            userId={follower.id}
-                            followUserMutation={followUser}
-                            unfollowUserMutation={unfollowUser}
-                            trpcRouterContext={trpcRouterContext}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                {!hasFollowers && <div>something went wrong</div>}
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Dialog>
-            <DialogTrigger
-              disabled={!hasFollowing}
-              className={!hasFollowing ? "opacity-70" : ""}
-            >
-              <div className="flex min-w-0 flex-col items-center text-lg">
-                <h3 className="font-semibold">Following</h3>
-                <p>{following.length}</p>
-              </div>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Following</DialogTitle>
-              </DialogHeader>
-              <div>
-                {following.length > 0 &&
-                  following.map((follower) => {
-                    return (
-                      <div key={follower.id} className="flex justify-between">
-                        <Link href={`/user/${follower.id}`}>
-                          <Image
-                            src={follower.profilePictureUrl}
-                            alt={`${follower.username}'s profile picture`}
-                            width={48}
-                            height={48}
-                            className="mr-2 inline-block rounded-full border-2 border-black align-middle"
-                          />
-                          <div className="inline-block align-middle">
-                            <p className="text-lg font-bold">
-                              {toTitleCase(follower.username)}
-                            </p>
-                            <p className="text-md -mt-1 text-gray-400">
-                              {`${follower.firstName ?? ""} ${
-                                follower.lastName ?? ""
-                              }`}
-                            </p>
-                          </div>
-                        </Link>
-                        {!follower.isSelf && (
-                          <FollowButton
-                            userId={follower.id}
-                            followUserMutation={followUser}
-                            unfollowUserMutation={unfollowUser}
-                            trpcRouterContext={trpcRouterContext}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <UserListModal
+            disabled={!hasFollowers}
+            users={followers}
+            title="Followers"
+          >
+            <div className="flex min-w-0 flex-col items-center text-lg">
+              <h3 className="font-semibold">Followers</h3>
+              <p>{followers.length}</p>
+            </div>
+          </UserListModal>
+          <UserListModal
+            disabled={!hasFollowing}
+            users={following}
+            title="Following"
+          >
+            <div className="flex min-w-0 flex-col items-center text-lg">
+              <h3 className="font-semibold">Following</h3>
+              <p>{following.length}</p>
+            </div>
+          </UserListModal>
         </div>
         <div className="place-self-start lg:place-self-auto">
           <h1 className="text-3xl font-semibold">
@@ -186,18 +101,12 @@ export default function ProfilePage() {
         <div>
           {signedInUser?.id === user.id && (
             <RedirectToSettingsButton>
-              <BiPencil size={32} className="mr-1" />
-              <p className="text-lg font-semibold">Edit Profile</p>
+              <BiPencil size={24} className="mr-1" />
+              <p className="font-semibold">Edit Profile</p>
             </RedirectToSettingsButton>
           )}
           {signedInUser?.id !== user.id && (
-            <FollowButton
-              userId={user.id ?? ""}
-              followUserMutation={followUser}
-              unfollowUserMutation={unfollowUser}
-              trpcRouterContext={trpcRouterContext}
-              size="lg"
-            />
+            <FollowButton userId={user.id ?? ""} size="lg" />
           )}
         </div>
       </div>
@@ -209,25 +118,85 @@ export default function ProfilePage() {
   );
 }
 
+function UserListModal({
+  users,
+  title,
+  children,
+  disabled,
+}: {
+  users: SimplifiedUser[];
+  title: string;
+  children: React.ReactNode;
+  disabled: boolean;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [previousPath, setPreviousPath] = useState(router.asPath);
+  const hasUsers = users.length >= 1;
+
+  useEffect(() => {
+    if (open && previousPath !== router.asPath) setOpen(false);
+    setPreviousPath(router.asPath);
+  }, [open, previousPath, router.asPath]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger disabled={disabled} className="disabled:opacity-70">
+        {children}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div>
+          {hasUsers &&
+            users.map((user) => {
+              return (
+                <div key={user.id} className="flex justify-between">
+                  <Link href={`/user/${user.id}`}>
+                    <Image
+                      src={user.profilePictureUrl}
+                      alt={`${user.username}'s profile picture`}
+                      width={48}
+                      height={48}
+                      className="mr-2 inline-block rounded-full border-2 border-black align-middle"
+                    />
+                    <div className="inline-block align-middle">
+                      <p className="text-lg font-bold">
+                        {toTitleCase(user.username)}
+                      </p>
+                      <p className="text-md -mt-1 text-gray-400">
+                        {`${user.firstName ?? ""} ${user.lastName ?? ""}`}
+                      </p>
+                    </div>
+                  </Link>
+                  {!user.isSelf && <FollowButton userId={user.id} size="sm" />}
+                </div>
+              );
+            })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function FollowButton(props: {
   userId: string;
-  followUserMutation: typeof api.users.followUser.useMutation;
-  unfollowUserMutation: typeof api.users.unfollowUser.useMutation;
-  trpcRouterContext: ReturnType<typeof api.useContext>;
   size?: "sm" | "default" | "lg" | "icon";
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
 }) {
   const userId = props.userId;
-  const followUser = props.followUserMutation({
+  const trpcRouterContext = api.useContext();
+  const { mutate: followUser } = api.users.followUser.useMutation({
     onSuccess: async () => {
-      await props.trpcRouterContext.users.invalidate();
+      await trpcRouterContext.users.invalidate();
     },
-  }).mutate;
-  const unfollowUser = props.unfollowUserMutation({
+  });
+  const { mutate: unfollowUser } = api.users.unfollowUser.useMutation({
     onSuccess: async () => {
-      await props.trpcRouterContext.users.invalidate();
+      await trpcRouterContext.users.invalidate();
     },
-  }).mutate;
+  });
   const { data: isFollowing, error } = api.users.isFollowing.useQuery(userId);
 
   if (error) {

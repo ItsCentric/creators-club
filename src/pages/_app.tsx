@@ -7,27 +7,38 @@ import Layout from "~/components/Layout";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#fc8c54",
-        },
-        elements: {
-          formButtonPrimary: "bg-primary-500 hover:bg-primary-600",
-          footerActionLink: "text-secondary-500 hover:text-secondary-600",
-          formFieldLabel: "text-gray-900",
-          identityPreviewEditButtonIcon: "text-accent-500",
-        },
-      }}
-    >
-      <main
-        className={`${cabin.variable} ${montserrat.variable} ${yantramanav.variable}`}
+    <>
+      <style jsx global>
+        {`
+        :root {
+          --font-cabin: ${cabin.variable};
+          --font-montserrat: ${montserrat.variable}
+          --font-yantramanav: ${yantramanav.variable}
+        }
+      `}
+      </style>
+      <ClerkProvider
+        appearance={{
+          variables: {
+            colorPrimary: "#fc8c54",
+          },
+          elements: {
+            formButtonPrimary: "bg-primary-500 hover:bg-primary-600",
+            footerActionLink: "text-secondary-500 hover:text-secondary-600",
+            formFieldLabel: "text-gray-900",
+            identityPreviewEditButtonIcon: "text-accent-500",
+          },
+        }}
       >
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </main>
-    </ClerkProvider>
+        <main
+          className={`${cabin.variable} ${montserrat.variable} ${yantramanav.variable}`}
+        >
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </main>
+      </ClerkProvider>
+    </>
   );
 };
 
