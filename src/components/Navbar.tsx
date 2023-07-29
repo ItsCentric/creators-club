@@ -38,7 +38,7 @@ import { useToast } from "./ui/use-toast";
 export default function Navbar() {
   return (
     <>
-      <nav className="sticky bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:static lg:order-first lg:w-fit lg:border-r lg:px-10">
+      <nav className="sticky bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:top-0 lg:order-first lg:h-screen lg:w-fit lg:border-r lg:px-10">
         <div className="mx-auto w-fit">
           <Image
             src="/cclogo.png"
@@ -51,10 +51,10 @@ export default function Navbar() {
             {"Creators\nClub"}
           </p>
         </div>
-        <Separator className="my-2" />
+        <Separator className="my-2 hidden lg:block" />
         <ul className="items-left flex justify-evenly gap-4 lg:my-2 lg:flex-col lg:gap-0">
           <li>
-            <Button variant="nav" className="gap-2" asChild>
+            <Button variant="nav" size="none" className="gap-2" asChild>
               <Link href="/">
                 <AiOutlineHome size={32} />
                 <p className="hidden font-semibold lg:inline-block">
@@ -64,23 +64,17 @@ export default function Navbar() {
             </Button>
           </li>
           <li>
-            <Button variant="nav" asChild>
+            <Button variant="nav" size="none" className="gap-2" asChild>
               <Link href="/">
-                <AiOutlineSearch
-                  size={32}
-                  className="lg:mr-2 lg:inline-block"
-                />
+                <AiOutlineSearch size={32} />
                 <p className="hidden font-semibold lg:inline-block">Search</p>
               </Link>
             </Button>
           </li>
           <li>
-            <Button variant="nav" asChild>
+            <Button variant="nav" size="none" className="gap-2" asChild>
               <Link href="/">
-                <IoChatbubblesOutline
-                  size={32}
-                  className="lg:mr-2 lg:inline-block"
-                />
+                <IoChatbubblesOutline size={32} />
                 <p className="hidden font-semibold lg:inline-block">
                   Conversations
                 </p>
@@ -211,9 +205,9 @@ function CreatePost() {
       }}
     >
       <DialogTrigger>
-        <Button variant="nav" asChild>
+        <Button variant="nav" size="none" className="gap-2" asChild>
           <div>
-            <AiOutlineEdit size={32} className="lg:mr-2" />
+            <AiOutlineEdit size={32} />
             <p className="hidden font-semibold lg:block">Create Post</p>
           </div>
         </Button>
@@ -341,24 +335,21 @@ function UserButton() {
     <>
       <SignedOut>
         <SignUpButton>
-          <Button variant="nav">
+          <Button variant="nav" size="none">
             <VscAccount size={32} className="lg:mr-2" />
             <p className="hidden font-bold lg:block">Join the Club</p>
           </Button>
         </SignUpButton>
       </SignedOut>
       <SignedIn>
-        <Button asChild variant="nav">
-          <Link
-            className="hover:bg-accent-100/50 flex items-center rounded-full lg:px-4 lg:py-2"
-            href={`/user/${user?.id ?? ""}`}
-          >
+        <Button asChild className="gap-2" variant="nav" size="none">
+          <Link href={`/user/${user?.id ?? ""}`}>
             <Image
               src={user?.imageUrl ?? ""}
               width={32}
               height={32}
               alt={`${user?.username ?? ""}'s profile picture`}
-              className="rounded-full border-2 border-black lg:mr-2"
+              className="rounded-full border-2 border-black"
             />
             <h3 className="hidden font-montserrat font-semibold lg:block">
               {toTitleCase(user?.username ?? "")}
