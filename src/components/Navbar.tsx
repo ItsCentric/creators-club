@@ -306,7 +306,7 @@ function CreatePost() {
                       if (!file) return;
                       setMediaPreview(file);
                     }}
-                    className="relative rounded-md border border-gray-200"
+                    className="relative rounded-md border border-muted"
                   >
                     <div>
                       <Input
