@@ -1,16 +1,29 @@
 import { RedirectToUserProfile } from "@clerk/nextjs";
 import { useState, type ReactNode } from "react";
+import { Button } from "./ui/button";
 
 export default function RedirectToSettingsButton(props: {
   children: ReactNode;
-  className?: string;
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  size?: "default" | "sm" | "lg" | "icon";
 }) {
   const [redirect, setRedirect] = useState(false);
 
   return (
-    <button className={props.className} onClick={() => setRedirect(true)}>
+    <Button
+      variant={props.variant ?? "default"}
+      size={props.size ?? "default"}
+      onClick={() => setRedirect(true)}
+      className="font-semibold"
+    >
       {props.children}
       {redirect && <RedirectToUserProfile />}
-    </button>
+    </Button>
   );
 }
