@@ -35,7 +35,6 @@ import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
 import { useTheme } from "next-themes";
-import { GrSystem } from "react-icons/gr";
 
 export default function Navbar() {
   return (
@@ -102,7 +101,7 @@ export default function Navbar() {
 
 function ThemeButton() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => setMounted(true), []);
 
@@ -112,12 +111,17 @@ function ThemeButton() {
       variant="nav"
       size="none"
       className="gap-2"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
     >
-      <BsSun size={30} className={theme === "light" ? "block" : "hidden"} />
-      <BsMoon size={30} className={theme === "dark" ? "block" : "hidden"} />
-      <GrSystem size={30} className={theme === "system" ? "block" : "hidden"} />
-      <p className="hidden lg:block">{toTitleCase(theme ?? "")} Mode</p>
+      <BsSun
+        size={30}
+        className={resolvedTheme === "light" ? "block" : "hidden"}
+      />
+      <BsMoon
+        size={30}
+        className={resolvedTheme === "dark" ? "block" : "hidden"}
+      />
+      <p className="hidden lg:block">{toTitleCase(resolvedTheme ?? "")} Mode</p>
     </Button>
   );
 }
