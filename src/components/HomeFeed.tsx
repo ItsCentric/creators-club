@@ -47,7 +47,7 @@ export default function HomeFeed() {
   });
 
   return (
-    <div className="mb-2 flex min-h-full max-w-2xl flex-grow flex-col gap-2 divide-y border-x border-gray-300 lg:gap-4 lg:self-center">
+    <div className="mb-2 flex min-h-full max-w-2xl flex-grow flex-col gap-2 divide-y border-x border-muted lg:gap-4 lg:self-center">
       {formattedPosts}
     </div>
   );
@@ -76,7 +76,7 @@ function Post(props: { post: RouterOutputs["posts"]["getPosts"][number] }) {
       </Link>
       <div>
         {post.media && (
-          <div className="bg-gray-100">
+          <div className="bg-muted">
             <Image
               src={post.media}
               alt={post.content}
