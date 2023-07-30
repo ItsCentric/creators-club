@@ -60,14 +60,14 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="grid grid-cols-2 place-items-center gap-1 border-b border-b-gray-200 px-4 py-8">
+      <div className="grid grid-cols-2 place-items-center gap-1 border-b border-b-muted px-4 py-8">
         <div className="place-self-start lg:place-self-auto">
           <Image
             src={user.profilePictureUrl}
             width={96}
             height={96}
             alt={`${user.username}'s profile picture`}
-            className="inline-block rounded-full border-2 border-black bg-gray-200 align-middle lg:mr-4"
+            className="inline-block rounded-full border-2 border-foreground bg-gray-200 align-middle lg:mr-4"
           />
         </div>
         <div className="flex max-w-full justify-evenly gap-4">
@@ -232,7 +232,7 @@ function FollowButton(props: {
 function UserSkeletonPage() {
   return (
     <div className="flex h-full max-h-full flex-col overflow-hidden">
-      <div className="flex items-center justify-around border-b border-b-gray-200 px-4 py-8">
+      <div className="flex items-center justify-around border-b border-b-muted px-4 py-8">
         <div className="animate-pulse">
           <Skeleton className="mb-2 h-24 w-24 rounded-full lg:mr-2" />
           <div className="inline-block align-middle">

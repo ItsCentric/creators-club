@@ -1,6 +1,6 @@
 import { AiOutlineSearch, AiOutlineHome, AiOutlineEdit } from "react-icons/ai";
 import { IoChatbubblesOutline } from "react-icons/io5";
-import { BsTrash } from "react-icons/bs";
+import { BsMoon, BsSun, BsTrash } from "react-icons/bs";
 import { VscAccount } from "react-icons/vsc";
 import Image from "next/image";
 import { SignUpButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
@@ -34,11 +34,13 @@ import { useForm } from "react-hook-form";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
+import { useTheme } from "next-themes";
+import { GrSystem } from "react-icons/gr";
 
 export default function Navbar() {
   return (
     <>
-      <nav className="sticky bottom-0 z-10 order-2 w-full border-t border-gray-300 bg-white p-4 lg:top-0 lg:order-first lg:h-screen lg:w-fit lg:border-r lg:px-10">
+      <nav className="sticky bottom-0 z-10 order-2 flex w-full flex-col gap-2 border-t border-muted bg-background p-4 lg:top-0 lg:order-first lg:h-screen lg:w-fit lg:border-r lg:px-10">
         <div className="mx-auto w-fit">
           <Image
             src="/cclogo.png"
@@ -51,8 +53,8 @@ export default function Navbar() {
             {"Creators\nClub"}
           </p>
         </div>
-        <Separator className="my-2 hidden lg:block" />
-        <ul className="items-left flex justify-evenly gap-4 lg:my-2 lg:flex-col lg:gap-0">
+        <Separator className="hidden lg:block" />
+        <ul className="items-left flex grow justify-evenly gap-4 lg:my-2 lg:flex-col lg:justify-normal lg:gap-0">
           <li>
             <Button variant="nav" size="none" className="gap-2" asChild>
               <Link href="/">
@@ -82,14 +84,41 @@ export default function Navbar() {
             </Button>
           </li>
           <SignedIn>
-            <CreatePost />
+            <li>
+              <CreatePost />
+            </li>
           </SignedIn>
-          <li>
+          <li className="order-6 lg:order-5">
             <UserButton />
+          </li>
+          <li className="order-5 mt-auto lg:order-6">
+            <ThemeButton />
           </li>
         </ul>
       </nav>
     </>
+  );
+}
+
+function ThemeButton() {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+  return (
+    <Button
+      variant="nav"
+      size="none"
+      className="gap-2"
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+    >
+      <BsSun size={30} className={theme === "light" ? "block" : "hidden"} />
+      <BsMoon size={30} className={theme === "dark" ? "block" : "hidden"} />
+      <GrSystem size={30} className={theme === "system" ? "block" : "hidden"} />
+      <p className="hidden lg:block">{toTitleCase(theme ?? "")} Mode</p>
+    </Button>
   );
 }
 
