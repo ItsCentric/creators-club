@@ -11,13 +11,16 @@ export default function RedirectToSettingsButton(props: {
     | "secondary"
     | "ghost"
     | "link";
+  size?: "default" | "sm" | "lg" | "icon";
 }) {
   const [redirect, setRedirect] = useState(false);
 
   return (
     <Button
       variant={props.variant ?? "default"}
+      size={props.size ?? "default"}
       onClick={() => setRedirect(true)}
+      className="font-semibold"
     >
       {props.children}
       {redirect && <RedirectToUserProfile />}

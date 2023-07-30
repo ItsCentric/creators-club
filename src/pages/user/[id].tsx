@@ -100,7 +100,7 @@ export default function ProfilePage() {
         </div>
         <div>
           {signedInUser?.id === user.id && (
-            <RedirectToSettingsButton>
+            <RedirectToSettingsButton size="lg">
               <BiPencil size={24} className="mr-1" />
               <p className="font-semibold">Edit Profile</p>
             </RedirectToSettingsButton>
@@ -211,6 +211,7 @@ function FollowButton(props: {
         size={props.size}
         variant="destructive"
         onClick={() => unfollowUser(userId)}
+        className="font-semibold"
       >
         Unfollow
       </Button>
@@ -221,6 +222,7 @@ function FollowButton(props: {
       size={props.size}
       variant={props.variant}
       onClick={() => followUser(userId)}
+      className="font-semibold"
     >
       Follow
     </Button>
