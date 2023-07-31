@@ -5,29 +5,71 @@ import Image from "next/image";
 import toTitleCase from "~/utils/toTitleCase";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
+
+function useScrollPosition() {
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  function handleScroll() {
+    const height =
+      document.documentElement.scrollHeight -
+      document.documentElement.clientHeight;
+    const windowScrollTop =
+      document.body.scrollTop || document.documentElement.scrollTop;
+    const scrolled = (windowScrollTop / height) * 100;
+
+    setScrollPosition(scrolled);
+  }
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  return scrollPosition;
+}
 
 export default function HomeFeed() {
-  const {
-    data: posts,
-    error: getPostsError,
-    isLoading: isPostsLoading,
-  } = api.posts.getPosts.useQuery({ limit: 10, offset: 0 });
+  const scrollPosition = useScrollPosition();
+  const postsQuery = api.posts.getPosts.useInfiniteQuery(
+    { limit: 10 },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
-  if (isPostsLoading) return <SkeletonFeed />;
+  useEffect(() => {
+    if (
+      scrollPosition > 90 &&
+      postsQuery.hasNextPage &&
+      !postsQuery.isFetching
+    ) {
+      void postsQuery.fetchNextPage();
+    }
+  }, [postsQuery, scrollPosition]);
 
-  if (getPostsError) {
+  if (postsQuery.isLoading) return <SkeletonFeed />;
+
+  if (postsQuery.isError) {
+    const error = postsQuery.error;
+
     return (
       <ClientError
-        httpCode={getPostsError.data?.httpStatus}
-        statusCode={getPostsError.data?.code}
-        message={getPostsError.message}
+        httpCode={error.data?.httpStatus}
+        statusCode={error.data?.code}
+        message={error.message}
       >
         Something went wrong when getting your posts, sorry about that!
       </ClientError>
     );
   }
 
-  if (posts?.length === 0 && !isPostsLoading && !getPostsError) {
+  const posts = postsQuery.data.pages.flatMap((page) => page.posts);
+  if (posts.length === 0 && !postsQuery.isLoading && !postsQuery.isError) {
     return (
       <div className="flex h-full flex-grow-[8] flex-col items-center justify-center p-4 text-center">
         <MdOutlineSearchOff
@@ -42,18 +84,29 @@ export default function HomeFeed() {
     );
   }
 
-  const formattedPosts = posts?.map((post) => {
+  const formattedPosts = posts.map((post) => {
     return <Post post={post} key={post.id} />;
   });
 
   return (
     <div className="mb-2 flex min-h-full max-w-2xl flex-grow flex-col gap-2 divide-y border-x border-muted lg:gap-4 lg:self-center">
-      {formattedPosts}
+      <>{formattedPosts}</>
+      <div className="flex items-center justify-center pt-2">
+        <Button
+          onClick={() => void postsQuery.fetchNextPage()}
+          disabled={!postsQuery.hasNextPage || postsQuery.isFetching}
+        >
+          More posts
+        </Button>
+      </div>
     </div>
   );
 }
 
-function Post(props: { post: RouterOutputs["posts"]["getPosts"][number] }) {
+function Post(props: {
+  post: RouterOutputs["posts"]["getPosts"]["posts"][number];
+}) {
+  if (!props.post) return null;
   const post = props.post;
   const author = post.author;
 

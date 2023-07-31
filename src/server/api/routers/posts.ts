@@ -12,7 +12,7 @@ export const postsRouter = createTRPCRouter({
       z.object({
         userId: z.optional(z.string()),
         limit: z.number(),
-        offset: z.number(),
+        cursor: z.optional(z.string()),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -20,17 +20,23 @@ export const postsRouter = createTRPCRouter({
         where: {
           authorId: input.userId,
         },
-        take: input.limit,
-        skip: input.offset,
+        take: input.limit + 1,
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        orderBy: {
+          createdAt: "desc",
+        },
       });
+      const nextCursor =
+        posts.length > input.limit
+          ? (posts.pop() as (typeof posts)[number]).id
+          : undefined;
 
       const users = await clerkClient.users.getUserList({
         userId: posts.map((post) => post.authorId),
         limit: input.limit,
-        offset: input.offset,
       });
 
-      return posts.map((post) => {
+      const mappedPosts = posts.map((post) => {
         const user = users.find((user) => user.id === post.authorId);
         if (!user || !user.username || !user.profileImageUrl)
           throw new TRPCError({
@@ -45,6 +51,11 @@ export const postsRouter = createTRPCRouter({
           },
         };
       });
+
+      return {
+        posts: mappedPosts,
+        nextCursor,
+      };
     }),
 
   getPost: publicProcedure
