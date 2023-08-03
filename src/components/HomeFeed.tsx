@@ -7,6 +7,15 @@ import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
+import { AiOutlineMore } from "react-icons/ai";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import PostWizard from "./PostWizard";
+import { useUser } from "@clerk/nextjs";
 
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -106,27 +115,56 @@ export default function HomeFeed() {
 function Post(props: {
   post: RouterOutputs["posts"]["getPosts"]["posts"][number];
 }) {
+  const [open, setOpen] = useState(false);
+  const { user } = useUser();
   if (!props.post) return null;
   const post = props.post;
   const author = post.author;
 
   return (
     <div className="flex w-full flex-col pt-2" key={post.id}>
-      <Link
-        href={`/user/${post.authorId}`}
-        className={"w-fit" + (post.media ? " pb-2" : " pb-1")}
+      <div
+        className={`flex items-center justify-between px-4 ${
+          post.media ? "pb-2" : "pb-1"
+        }`}
       >
-        <Image
-          src={author.profileImageUrl}
-          alt={`${author.username}'s profile picture`}
-          height={32}
-          width={32}
-          className="ml-4 mr-1 inline-block rounded-full border-2 border-black align-middle"
-        />
-        <p className="inline-block align-middle font-cabin text-lg font-bold">
-          {toTitleCase(author.username)}
-        </p>
-      </Link>
+        <Link href={`/user/${post.authorId}`}>
+          <Image
+            src={author.profileImageUrl}
+            alt={`${author.username}'s profile picture`}
+            height={32}
+            width={32}
+            className="mr-1 inline-block rounded-full border-2 border-black align-middle"
+          />
+          <p className="inline-block align-middle font-cabin text-lg font-bold">
+            {toTitleCase(author.username)}
+          </p>
+        </Link>
+        {user?.id === post.authorId && (
+          <div>
+            <PostWizard
+              mode="edit"
+              postData={post}
+              dropdown
+              open={open}
+              onOpenChange={setOpen}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost">
+                    <AiOutlineMore size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setOpen(true)}>
+                    Edit Post
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </PostWizard>
+          </div>
+        )}
+      </div>
       <div>
         {post.media && (
           <div className="bg-muted">

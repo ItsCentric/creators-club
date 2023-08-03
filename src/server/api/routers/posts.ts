@@ -89,6 +89,51 @@ export const postsRouter = createTRPCRouter({
       return post;
     }),
 
+  editPost: privateProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+        content: z.string().trim().min(1).max(1000),
+        media: z.optional(z.string()),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const oldPost = await ctx.prisma.post.findUnique({
+        where: {
+          id: input.postId,
+        },
+      });
+
+      if (!oldPost) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (oldPost.authorId !== ctx.userId)
+        throw new TRPCError({ code: "FORBIDDEN" });
+      if (oldPost.content === input.content && oldPost.media === input.media)
+        return oldPost;
+      console.log(oldPost.media, input.media);
+      if (input.media && oldPost.media !== input.media) {
+        if (!oldPost.media)
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await ctx.s3Client.send(
+          new PutObjectCommand({
+            Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
+            Key: oldPost.media?.split("aws.com/").pop(),
+          })
+        );
+      }
+
+      const post = await ctx.prisma.post.update({
+        where: {
+          id: input.postId,
+        },
+        data: {
+          content: input.content,
+          media: input.media,
+        },
+      });
+
+      return post;
+    }),
+
   generatePostMediaUploadUrl: privateProcedure
     .input(z.string().startsWith("image/"))
     .query(async ({ ctx, input: fileTypeInput }) => {
