@@ -6,7 +6,7 @@ import toTitleCase from "~/utils/toTitleCase";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { AiOutlineMore } from "react-icons/ai";
 import {
   DropdownMenu,
@@ -16,6 +16,18 @@ import {
 } from "./ui/dropdown-menu";
 import PostWizard from "./PostWizard";
 import { useUser } from "@clerk/nextjs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
+
+import { useToast } from "./ui/use-toast";
 
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -41,6 +53,8 @@ function useScrollPosition() {
 
   return scrollPosition;
 }
+
+type PostWithBasicUser = RouterOutputs["posts"]["getPosts"]["posts"][number];
 
 export default function HomeFeed() {
   const scrollPosition = useScrollPosition();
@@ -112,10 +126,7 @@ export default function HomeFeed() {
   );
 }
 
-function Post(props: {
-  post: RouterOutputs["posts"]["getPosts"]["posts"][number];
-}) {
-  const [open, setOpen] = useState(false);
+function Post(props: { post: PostWithBasicUser }) {
   const { user } = useUser();
   if (!props.post) return null;
   const post = props.post;
@@ -142,26 +153,7 @@ function Post(props: {
         </Link>
         {user?.id === post.authorId && (
           <div>
-            <PostWizard
-              mode="edit"
-              postData={post}
-              dropdown
-              open={open}
-              onOpenChange={setOpen}
-            >
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <AiOutlineMore size={16} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setOpen(true)}>
-                    Edit Post
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </PostWizard>
+            <PostOptionsDropdown post={post} />
           </div>
         )}
       </div>
@@ -187,6 +179,133 @@ function Post(props: {
         </p>
       </div>
     </div>
+  );
+}
+
+function PostOptionsDropdown(props: { post: PostWithBasicUser }) {
+  const [openEditPost, setOpenEditPost] = useState(false);
+  const [openDeletePost, setOpenDeletePost] = useState(false);
+  const { post } = props;
+
+  return (
+    <PostWizard
+      mode="edit"
+      postData={post}
+      dropdown
+      open={openEditPost}
+      onOpenChange={setOpenEditPost}
+    >
+      <DeletePostAlert
+        post={post}
+        open={openDeletePost}
+        onOpenChange={setOpenDeletePost}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost">
+              <AiOutlineMore size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setOpenEditPost(true)}>
+              Edit Post
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setOpenDeletePost(true)}
+              className="text-red-800 dark:text-red-400"
+            >
+              Delete Post
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DeletePostAlert>
+    </PostWizard>
+  );
+}
+
+function DeletePostAlert(props: {
+  post: PostWithBasicUser;
+  children: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const trpcContext = api.useContext();
+  const { toast } = useToast();
+  const [deletePostCountdown, setDeletePostCountdown] = useState(5);
+  const { mutate: deletePost } = api.posts.deletePost.useMutation({
+    onSuccess: async () => {
+      props.onOpenChange(false);
+      await trpcContext.posts.getPosts.invalidate();
+      toast({
+        title: "Post deleted",
+        description:
+          "Your post has been deleted. No one will lay eyes on it ever again.",
+        variant: "success",
+      });
+    },
+    onError: (error) => {
+      props.onOpenChange(false);
+      toast({
+        title: "Well that's embarrassing...",
+        description: `Something went wrong while deleting your post.\nCode: ${
+          error.data?.code ?? "INTERNAL_SERVER_ERROR"
+        }\nMessage: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  const { post, children, open, onOpenChange } = props;
+
+  useEffect(() => {
+    if (open && deletePostCountdown > 0) {
+      const interval = setInterval(() => {
+        setDeletePostCountdown((countdown) => countdown - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      setDeletePostCountdown(5);
+    };
+  }, [deletePostCountdown, open]);
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      {children}
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Post</AlertDialogTitle>
+          <AlertDialogDescription>
+            <p>
+              You will <strong>not</strong> be able to undo this.
+            </p>
+            {deletePostCountdown > 0 && (
+              <p>
+                You will be able to continue in {deletePostCountdown} seconds.
+              </p>
+            )}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={deletePostCountdown > 0}
+            onClick={() =>
+              post.media
+                ? deletePost({
+                    postData: { postId: post.id, authorId: post.authorId },
+                    media: post.media,
+                  })
+                : deletePost({
+                    postData: { postId: post.id, authorId: post.authorId },
+                  })
+            }
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

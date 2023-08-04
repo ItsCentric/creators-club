@@ -4,7 +4,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const postsRouter = createTRPCRouter({
   getPosts: publicProcedure
@@ -132,6 +132,36 @@ export const postsRouter = createTRPCRouter({
       });
 
       return post;
+    }),
+
+  deletePost: privateProcedure
+    .input(
+      z.object({
+        postData: z.object({ postId: z.string(), authorId: z.string() }),
+        media: z.optional(z.string()),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { postData, media } = input;
+      if (postData.authorId !== ctx.userId)
+        throw new TRPCError({ code: "FORBIDDEN" });
+
+      if (media) {
+        await ctx.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
+            Key: media.split("aws.com/").pop(),
+          })
+        );
+      }
+
+      await ctx.prisma.post.delete({
+        where: {
+          id: postData.postId,
+        },
+      });
+
+      return true;
     }),
 
   generatePostMediaUploadUrl: privateProcedure
