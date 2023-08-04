@@ -119,6 +119,12 @@ export default function PostWizard(props: {
   });
 
   useEffect(() => {
+    if (postData) {
+      form.reset({ postContent: postData.content });
+    }
+  }, [form, postData]);
+
+  useEffect(() => {
     async function uploadMedia() {
       if (!formData || isGeneratingUrl) return;
       setFormData(undefined);
@@ -204,15 +210,20 @@ export default function PostWizard(props: {
             <FormField
               control={form.control}
               name="postContent"
-              render={({ field }) => {
+              defaultValue={postData?.content ?? ""}
+              render={({ field: { onChange, ...fieldProps } }) => {
                 return (
                   <FormItem>
                     <FormLabel className="text-base">Content</FormLabel>
                     <FormControl>
                       <Textarea
+                        onChange={(e) => {
+                          setCharacterCount(e.target.value.length);
+                          onChange(e);
+                        }}
                         placeholder="Let your followers know whats going on."
                         className="resize-none"
-                        {...field}
+                        {...fieldProps}
                       />
                     </FormControl>
                     <FormDescription>
