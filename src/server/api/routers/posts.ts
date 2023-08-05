@@ -20,6 +20,13 @@ export const postsRouter = createTRPCRouter({
         where: {
           authorId: input.userId,
         },
+        include: {
+          previousEdits: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+        },
         take: input.limit + 1,
         cursor: input.cursor ? { id: input.cursor } : undefined,
         orderBy: {
@@ -109,7 +116,6 @@ export const postsRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       if (oldPost.content === input.content && oldPost.media === input.media)
         return oldPost;
-      console.log(oldPost.media, input.media);
       if (input.media && oldPost.media !== input.media) {
         if (!oldPost.media)
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -128,6 +134,9 @@ export const postsRouter = createTRPCRouter({
         data: {
           content: input.content,
           media: input.media,
+          previousEdits: {
+            create: { content: oldPost.content },
+          },
         },
       });
 

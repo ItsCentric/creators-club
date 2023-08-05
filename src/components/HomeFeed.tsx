@@ -28,6 +28,22 @@ import {
 } from "./ui/alert-dialog";
 
 import { useToast } from "./ui/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import moment from "moment";
+import { Separator } from "./ui/separator";
 
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -131,6 +147,7 @@ function Post(props: { post: PostWithBasicUser }) {
   if (!props.post) return null;
   const post = props.post;
   const author = post.author;
+  const latestEdit = post.previousEdits[0];
 
   return (
     <div className="flex w-full flex-col pt-2" key={post.id}>
@@ -139,18 +156,76 @@ function Post(props: { post: PostWithBasicUser }) {
           post.media ? "pb-2" : "pb-1"
         }`}
       >
-        <Link href={`/user/${post.authorId}`}>
-          <Image
-            src={author.profileImageUrl}
-            alt={`${author.username}'s profile picture`}
-            height={32}
-            width={32}
-            className="mr-1 inline-block rounded-full border-2 border-black align-middle"
-          />
-          <p className="inline-block align-middle font-cabin text-lg font-bold">
-            {toTitleCase(author.username)}
-          </p>
-        </Link>
+        <div>
+          <Link
+            href={`/user/${post.authorId}`}
+            className="inline-flex items-center gap-1 align-middle"
+          >
+            <Image
+              src={author.profileImageUrl}
+              alt={`${author.username}'s profile picture`}
+              height={32}
+              width={32}
+              className="rounded-full border-2 border-black"
+            />
+            <p className="font-cabin text-lg font-bold">
+              {toTitleCase(author.username)}
+            </p>
+          </Link>
+          {latestEdit && (
+            <>
+              <span className="mx-1 align-middle text-gray-600 dark:text-gray-400">
+                ·
+              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Dialog>
+                      <DialogTrigger>
+                        <p className="align-middle text-sm text-gray-600 dark:text-gray-400">
+                          edited
+                        </p>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Revisions</DialogTitle>
+                          <DialogDescription>
+                            All previous versions of this post.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          {post.previousEdits.map((previousEdit, index) => {
+                            return (
+                              <>
+                                <div
+                                  className="flex flex-col gap-2"
+                                  key={previousEdit.id}
+                                >
+                                  <p>{previousEdit.content}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {moment(previousEdit.createdAt).format(
+                                      "MMMM Do YYYY, h:mma"
+                                    )}
+                                  </p>
+                                </div>
+                                {index !== post.previousEdits.length - 1 && (
+                                  <Separator className="my-2" />
+                                )}
+                              </>
+                            );
+                          })}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edited {moment(latestEdit.createdAt).fromNow()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
+          )}
+        </div>
         {user?.id === post.authorId && (
           <div>
             <PostOptionsDropdown post={post} />
