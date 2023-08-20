@@ -21,6 +21,7 @@ export const postsRouter = createTRPCRouter({
           authorId: input.userId,
         },
         include: {
+          media: true,
           previousEdits: {
             orderBy: {
               createdAt: "desc",
@@ -81,14 +82,18 @@ export const postsRouter = createTRPCRouter({
     .input(
       z.object({
         content: z.string().trim().min(1).max(1000),
-        media: z.optional(z.string()),
+        media: z.optional(
+          z.array(z.object({ id: z.string(), url: z.string() }))
+        ),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const post = await ctx.prisma.post.create({
         data: {
           content: input.content,
-          media: input.media,
+          media: {
+            create: input.media,
+          },
           authorId: ctx.userId,
         },
       });
@@ -101,7 +106,6 @@ export const postsRouter = createTRPCRouter({
       z.object({
         postId: z.string(),
         content: z.string().trim().min(1).max(1000),
-        media: z.optional(z.string()),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -109,23 +113,14 @@ export const postsRouter = createTRPCRouter({
         where: {
           id: input.postId,
         },
+        include: {
+          media: true,
+        },
       });
 
       if (!oldPost) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       if (oldPost.authorId !== ctx.userId)
         throw new TRPCError({ code: "FORBIDDEN" });
-      if (oldPost.content === input.content && oldPost.media === input.media)
-        return oldPost;
-      if (input.media && oldPost.media !== input.media) {
-        if (!oldPost.media)
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        await ctx.s3Client.send(
-          new PutObjectCommand({
-            Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
-            Key: oldPost.media?.split("aws.com/").pop(),
-          })
-        );
-      }
 
       const post = await ctx.prisma.post.update({
         where: {
@@ -133,7 +128,6 @@ export const postsRouter = createTRPCRouter({
         },
         data: {
           content: input.content,
-          media: input.media,
           previousEdits: {
             create: { content: oldPost.content },
           },
@@ -147,7 +141,11 @@ export const postsRouter = createTRPCRouter({
     .input(
       z.object({
         postData: z.object({ postId: z.string(), authorId: z.string() }),
-        media: z.optional(z.string()),
+        media: z.optional(
+          z.array(
+            z.object({ id: z.string(), url: z.string(), postId: z.string() })
+          )
+        ),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -156,12 +154,14 @@ export const postsRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
 
       if (media) {
-        await ctx.s3Client.send(
-          new DeleteObjectCommand({
-            Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
-            Key: media.split("aws.com/").pop(),
-          })
-        );
+        for (const mediaItem of media) {
+          await ctx.s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
+              Key: mediaItem.url.split("aws.com/").pop(),
+            })
+          );
+        }
       }
 
       await ctx.prisma.post.delete({
@@ -174,26 +174,37 @@ export const postsRouter = createTRPCRouter({
     }),
 
   generatePostMediaUploadUrl: privateProcedure
-    .input(z.string().startsWith("image/"))
+    .input(z.array(z.string().startsWith("image/")))
     .query(async ({ ctx, input: fileTypeInput }) => {
-      const fileType = fileTypeInput.split("/")[1];
-      if (!fileType) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const Key = `${ctx.userId}/${randomUUID()}.${fileType}`;
+      const fileTypes = fileTypeInput.map((fileType) => {
+        const fileExtension = fileType.split("/").pop();
+        if (!fileExtension)
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        return fileExtension;
+      });
+      if (!fileTypes) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const urls = await Promise.all(
+        fileTypes.map(async (fileType) => {
+          const Key = `${ctx.userId}/${randomUUID()}.${fileType}`;
 
-      const s3Parameters = {
-        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
-        Key,
-        ContentType: `image/${fileType}`,
-      };
-      const signedUrl = await getSignedUrl(
-        ctx.s3Client,
-        new PutObjectCommand(s3Parameters),
-        { expiresIn: 60 * 5 }
+          const s3Parameters = {
+            Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
+            Key,
+            ContentType: `image/${fileType}`,
+          };
+          const signedUrl = await getSignedUrl(
+            ctx.s3Client,
+            new PutObjectCommand(s3Parameters),
+            { expiresIn: 60 * 5 }
+          );
+
+          return {
+            signedUrl,
+            key: Key,
+          };
+        })
       );
 
-      return {
-        signedUrl,
-        key: Key,
-      };
+      return urls;
     }),
 });

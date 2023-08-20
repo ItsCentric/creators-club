@@ -25,8 +25,8 @@ import {
 import { Textarea } from "./ui/textarea";
 import { BsTrash } from "react-icons/bs";
 import { Input } from "./ui/input";
-import Image from "next/image";
 import toTitleCase from "~/utils/toTitleCase";
+import MediaCarousel from "./MediaCarousel";
 
 export default function PostWizard(props: {
   mode: "create" | "edit";
@@ -48,7 +48,7 @@ export default function PostWizard(props: {
     isError: isUrlError,
     error: urlError,
   } = api.posts.generatePostMediaUploadUrl.useQuery(
-    formData?.postMedia?.type ?? "",
+    formData?.postMedia?.map((media) => media.type) ?? [],
     {
       enabled: !!formData?.postMedia,
       retry: false,
@@ -105,9 +105,15 @@ export default function PostWizard(props: {
   const formSchema = z.object({
     postContent: z.string().trim().min(1).max(1000),
     postMedia: z
-      .instanceof(File)
-      .refine((file) =>
-        ["image/png", "image/jpg", "image/jpeg"].includes(file.type)
+      .array(z.instanceof(File))
+      .max(3, { message: "You can only upload up to 3 images" })
+      .refine(
+        (fileArray) => {
+          return fileArray.every((file) =>
+            ["image/png", "image/jpg", "image/jpeg"].includes(file.type)
+          );
+        },
+        { message: "Only images are allowed" }
       )
       .optional(),
   });
@@ -132,13 +138,19 @@ export default function PostWizard(props: {
       if (!postContent) throw new Error("Content is required.");
       if (isUrlError) throw new Error(urlError?.message);
       if (postMedia && uploadUrlData) {
-        await axios.put(uploadUrlData.signedUrl, postMedia);
+        for (const urlData of uploadUrlData) {
+          const index = uploadUrlData.indexOf(urlData);
+          await axios.put(urlData.signedUrl, postMedia[index]);
+        }
       }
-      const mediaUrl = uploadUrlData?.key
-        ? `https://${
+      const mediaUrl = uploadUrlData?.map((urlData) => {
+        return {
+          id: urlData.key,
+          url: `https://${
             process.env.NEXT_PUBLIC_AWS_BUCKET ?? ""
-          }.s3.amazonaws.com/${uploadUrlData.key}`
-        : undefined;
+          }.s3.amazonaws.com/${urlData.key}`,
+        };
+      });
       props.mode === "create"
         ? createPost({
             content: postContent,
@@ -147,7 +159,6 @@ export default function PostWizard(props: {
         : editPost({
             postId: postData?.id ?? "",
             content: postContent,
-            media: mediaUrl,
           });
     }
 
@@ -263,31 +274,21 @@ export default function PostWizard(props: {
                         {...fieldProps}
                         onChange={(event) => {
                           if (!event.target.files) return;
-                          onChange(event.target.files[0]);
+                          onChange(Array.from(event.target.files ?? []));
                         }}
+                        multiple
                         disabled={mode === "edit"}
                       />
-                      <div className="absolute left-0 top-0 -z-10 flex h-full w-full items-center justify-center rounded-md peer-disabled:opacity-50">
-                        {(!postData?.media || !value) && (
-                          <p className="text-center text-gray-500">
-                            {mode === "create"
-                              ? "Click here to add an image"
-                              : "No image"}
-                          </p>
-                        )}
-                        {(value || postData?.media) && (
-                          <Image
-                            src={
-                              value
-                                ? URL.createObjectURL(value)
-                                : postData?.media ?? ""
-                            }
-                            alt="post media"
-                            fill={true}
-                            className="relative max-w-full rounded-md object-contain"
-                          />
-                        )}
-                      </div>
+                      {!value && !postData?.media && (
+                        <p className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-gray-500">
+                          Click to add an image
+                        </p>
+                      )}
+                      <MediaCarousel
+                        media={(value || postData?.media) ?? []}
+                        alt="ur mom"
+                        className="pointer-events-none absolute left-0 top-0 h-full w-full peer-disabled:opacity-50"
+                      />
                     </div>
                   </FormControl>
                   <FormDescription>

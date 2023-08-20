@@ -16,7 +16,7 @@ import PostWizard from "./PostWizard";
 export default function Navbar() {
   return (
     <>
-      <nav className="sticky bottom-0 z-10 order-2 flex w-full flex-col gap-2 border-t border-muted bg-background p-4 lg:top-0 lg:order-first lg:h-screen lg:w-fit lg:border-r lg:px-10">
+      <nav className="sticky bottom-0 z-50 order-2 flex w-full flex-col gap-2 border-t border-muted bg-background p-4 lg:top-0 lg:order-first lg:h-screen lg:w-fit lg:border-r lg:px-10">
         <div className="mx-auto w-fit">
           <Image
             src="/cclogo.png"

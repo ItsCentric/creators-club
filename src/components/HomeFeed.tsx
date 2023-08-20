@@ -44,6 +44,7 @@ import {
 } from "./ui/dialog";
 import moment from "moment";
 import { Separator } from "./ui/separator";
+import MediaCarousel from "./MediaCarousel";
 
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -233,21 +234,19 @@ function Post(props: { post: PostWithBasicUser }) {
         )}
       </div>
       <div>
-        {post.media && (
+        {post.media.length > 0 && (
           <div className="bg-muted">
-            <Image
-              src={post.media}
+            <MediaCarousel
+              media={post.media}
               alt={post.content}
-              height={400}
-              width={400}
-              className="mx-auto aspect-square object-cover"
+              className="mx-auto h-96 w-full"
             />
           </div>
         )}
         <p
           className={
             "line-clamp-4 max-h-96 px-4 font-montserrat" +
-            (post.media ? " mt-2 text-sm" : "")
+            (post.media.length > 0 ? " mt-2 text-sm" : "")
           }
         >
           {post.content}
@@ -366,7 +365,7 @@ function DeletePostAlert(props: {
           <AlertDialogAction
             disabled={deletePostCountdown > 0}
             onClick={() =>
-              post.media
+              post.media.length > 0
                 ? deletePost({
                     postData: { postId: post.id, authorId: post.authorId },
                     media: post.media,

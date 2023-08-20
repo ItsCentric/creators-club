@@ -21,9 +21,9 @@ model Post {
     author        User         @relation(fields: [authorId], references: [id])
     authorId      String
     createdAt     DateTime     @default(now())
-    media         String?
+    media         Media[]
     content       String       @db.VarChar(1000)
-    previousEdits EditedPost[] @relation("EditedPostToPost")
+    previousEdits EditedPost[]
 
     @@index([authorId])
 }
@@ -31,9 +31,18 @@ model Post {
 model EditedPost {
     id           String   @id @default(uuid())
     parentPostId String
-    parentPost   Post     @relation("EditedPostToPost", fields: [parentPostId], references: [id], onDelete: Cascade)
+    parentPost   Post     @relation(fields: [parentPostId], references: [id], onDelete: Cascade)
     createdAt    DateTime @default(now())
     content      String   @db.VarChar(1000)
 
     @@index([parentPostId])
+}
+
+model Media {
+    id     String @id
+    postId String
+    post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+    url    String
+
+    @@index([postId])
 }
