@@ -115,6 +115,25 @@ export default function PostWizard(props: {
         },
         { message: "Only images are allowed" }
       )
+      .refine(
+        (fileArray) => {
+          return Promise.all(
+            fileArray.map((file) => {
+              return new Promise<boolean>((resolve) => {
+                const image = new Image();
+                image.src = URL.createObjectURL(file);
+                image.onload = () => {
+                  const isValid =
+                    image.width / image.height === 16 / 9 ||
+                    image.width / image.height === 1;
+                  resolve(isValid);
+                };
+              });
+            })
+          ).then((results) => results.every((isValid) => isValid));
+        },
+        { message: "Only images with a 16:9 or 1:1 aspect ratio are allowed" }
+      )
       .optional(),
   });
   const form = useForm<z.infer<typeof formSchema>>({
