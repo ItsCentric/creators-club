@@ -83,7 +83,14 @@ export const postsRouter = createTRPCRouter({
       z.object({
         content: z.string().trim().min(1).max(1000),
         media: z.optional(
-          z.array(z.object({ id: z.string(), url: z.string() }))
+          z.array(
+            z.object({
+              id: z.string(),
+              url: z.string(),
+              type: z.enum(["IMAGE", "VIDEO"]),
+              format: z.string(),
+            })
+          )
         ),
       })
     )
@@ -174,7 +181,7 @@ export const postsRouter = createTRPCRouter({
     }),
 
   generatePostMediaUploadUrl: privateProcedure
-    .input(z.array(z.string().startsWith("image/")))
+    .input(z.array(z.string()))
     .query(async ({ ctx, input: fileTypeInput }) => {
       const fileTypes = fileTypeInput.map((fileType) => {
         const fileExtension = fileType.split("/").pop();
@@ -184,13 +191,13 @@ export const postsRouter = createTRPCRouter({
       });
       if (!fileTypes) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const urls = await Promise.all(
-        fileTypes.map(async (fileType) => {
+        fileTypes.map(async (fileType, i) => {
           const Key = `${ctx.userId}/${randomUUID()}.${fileType}`;
 
           const s3Parameters = {
             Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET ?? "",
             Key,
-            ContentType: `image/${fileType}`,
+            ContentType: fileTypeInput[i],
           };
           const signedUrl = await getSignedUrl(
             ctx.s3Client,

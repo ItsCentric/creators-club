@@ -235,7 +235,7 @@ function Post(props: { post: PostWithBasicUser }) {
       </div>
       <div>
         {post.media.length > 0 && (
-          <div className="bg-muted">
+          <div className="relative bg-muted">
             <MediaCarousel
               media={post.media}
               alt={post.content}

@@ -106,33 +106,56 @@ export default function PostWizard(props: {
     postContent: z.string().trim().min(1).max(1000),
     postMedia: z
       .array(z.instanceof(File))
-      .max(3, { message: "You can only upload up to 3 images" })
+      .max(3, { message: "You can only upload up to 3 images or videos" })
       .refine(
         (fileArray) => {
           return fileArray.every((file) =>
-            ["image/png", "image/jpg", "image/jpeg"].includes(file.type)
+            ["video", "image"].includes(file.type.split("/")[0] ?? "")
           );
         },
-        { message: "Only images are allowed" }
+        { message: "Only images and videos are allowed" }
       )
       .refine(
         (fileArray) => {
           return Promise.all(
             fileArray.map((file) => {
-              return new Promise<boolean>((resolve) => {
-                const image = new Image();
-                image.src = URL.createObjectURL(file);
-                image.onload = () => {
-                  const isValid =
-                    image.width / image.height === 16 / 9 ||
-                    image.width / image.height === 1;
-                  resolve(isValid);
-                };
-              });
+              if (file.type.includes("image")) {
+                return new Promise<boolean>((resolve) => {
+                  const image = new Image();
+                  image.src = URL.createObjectURL(file);
+                  image.onload = () => {
+                    const isValid =
+                      image.width / image.height === 16 / 9 ||
+                      image.width / image.height === 1;
+                    resolve(isValid);
+                  };
+                });
+              }
+              if (file.type.includes("video")) {
+                return new Promise<boolean>((resolve) => {
+                  const video = document.createElement("video");
+                  video.src = URL.createObjectURL(file);
+                  video.onloadedmetadata = () => {
+                    const isValid =
+                      video.videoWidth / video.videoHeight === 16 / 9 ||
+                      video.videoWidth / video.videoHeight === 1;
+                    resolve(isValid);
+                  };
+                });
+              }
             })
           ).then((results) => results.every((isValid) => isValid));
         },
         { message: "Only images with a 16:9 or 1:1 aspect ratio are allowed" }
+      )
+      .refine(
+        (fileArray) => {
+          const maxFileSizeInMegabytes = 20;
+          return fileArray.every(
+            (file) => file.size / 1024 / 1024 <= maxFileSizeInMegabytes
+          );
+        },
+        { message: "Files must be less than 20MB" }
       )
       .optional(),
   });
@@ -149,6 +172,7 @@ export default function PostWizard(props: {
     }
   }, [form, postData]);
 
+  const mediaTypeParser = z.enum(["IMAGE", "VIDEO"]);
   useEffect(() => {
     async function uploadMedia() {
       if (!formData || isGeneratingUrl) return;
@@ -162,12 +186,20 @@ export default function PostWizard(props: {
           await axios.put(urlData.signedUrl, postMedia[index]);
         }
       }
-      const mediaUrl = uploadUrlData?.map((urlData) => {
+      const mediaUrl = uploadUrlData?.map((urlData, i) => {
+        const splitMedia = formData?.postMedia?.[i]?.type.split("/");
+        const mediaType = mediaTypeParser.parse(splitMedia?.[0]?.toUpperCase());
+        const mediaFormat = splitMedia?.[1];
+        if (!mediaType || !mediaFormat)
+          throw new Error("Failed to parse media type.");
+
         return {
           id: urlData.key,
           url: `https://${
             process.env.NEXT_PUBLIC_AWS_BUCKET ?? ""
           }.s3.amazonaws.com/${urlData.key}`,
+          type: mediaType,
+          format: mediaFormat,
         };
       });
       props.mode === "create"
@@ -197,6 +229,7 @@ export default function PostWizard(props: {
     formData,
     isGeneratingUrl,
     isUrlError,
+    mediaTypeParser,
     postData?.id,
     props.mode,
     toast,
@@ -288,7 +321,7 @@ export default function PostWizard(props: {
                     <div>
                       <Input
                         type="file"
-                        accept=".png, .jpg, .jpeg"
+                        accept="image/*, video/*"
                         className="peer h-64 w-full cursor-pointer opacity-0"
                         {...fieldProps}
                         onChange={(event) => {
@@ -305,13 +338,13 @@ export default function PostWizard(props: {
                       )}
                       <MediaCarousel
                         media={(value || postData?.media) ?? []}
-                        alt="ur mom"
+                        alt={postData?.content ?? ""}
                         className="pointer-events-none absolute left-0 top-0 h-full w-full peer-disabled:opacity-50"
                       />
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Accepts .jpg, .jpeg, and .png files.
+                    Accepts any image or video file under 20MB.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
