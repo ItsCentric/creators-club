@@ -103,7 +103,15 @@ export default function PostWizard(props: {
     },
   });
   const formSchema = z.object({
-    postContent: z.string().trim().min(1).max(1000),
+    postContent: z
+      .string()
+      .trim()
+      .min(1, {
+        message: "Must be at least 1 character.",
+      })
+      .max(1000, {
+        message: "Must be less than 1000 characters.",
+      }),
     postMedia: z
       .array(z.instanceof(File))
       .max(3, { message: "You can only upload up to 3 images or videos" })
@@ -172,10 +180,10 @@ export default function PostWizard(props: {
     }
   }, [form, postData]);
 
-  const mediaTypeParser = z.enum(["IMAGE", "VIDEO"]);
   useEffect(() => {
     async function uploadMedia() {
       if (!formData || isGeneratingUrl) return;
+      const mediaTypeParser = z.enum(["IMAGE", "VIDEO"]);
       setFormData(undefined);
       const { postContent, postMedia } = formData;
       if (!postContent) throw new Error("Content is required.");
@@ -229,7 +237,6 @@ export default function PostWizard(props: {
     formData,
     isGeneratingUrl,
     isUrlError,
-    mediaTypeParser,
     postData?.id,
     props.mode,
     toast,
@@ -281,7 +288,7 @@ export default function PostWizard(props: {
                     <FormControl>
                       <Textarea
                         onChange={(e) => {
-                          setCharacterCount(e.target.value.length);
+                          setCharacterCount(e.target.value.trim().length);
                           onChange(e);
                         }}
                         placeholder="Let your followers know whats going on."

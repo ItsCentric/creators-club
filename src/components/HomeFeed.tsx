@@ -129,7 +129,7 @@ export default function HomeFeed() {
   });
 
   return (
-    <div className="mb-2 flex min-h-full max-w-3xl flex-grow flex-col gap-2 divide-y border-x border-muted lg:gap-4 lg:self-center">
+    <div className="mb-2 flex min-h-full w-full max-w-3xl flex-grow flex-col gap-2 divide-y border-x border-muted lg:gap-4 lg:self-center">
       <>{formattedPosts}</>
       <div className="flex items-center justify-center pt-2">
         <Button
@@ -239,7 +239,7 @@ function Post(props: { post: PostWithBasicUser }) {
             <MediaCarousel
               media={post.media}
               alt={post.content}
-              className="mx-auto aspect-video h-96"
+              className="mx-auto aspect-video"
             />
           </div>
         )}
