@@ -45,6 +45,7 @@ import {
 import moment from "moment";
 import { Separator } from "./ui/separator";
 import MediaCarousel from "./MediaCarousel";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -145,7 +146,37 @@ export default function HomeFeed() {
 
 function Post(props: { post: PostWithBasicUser }) {
   const { user } = useUser();
-  if (!props.post) return null;
+  const { toast } = useToast();
+  const trpcContext = api.useContext();
+  const [fetchPostLikes, setFetchPostLikes] = useState(false);
+  const { mutate: likePost } = api.posts.likePost.useMutation({
+    onSuccess: async () => await trpcContext.posts.getPosts.invalidate(),
+    onError: (error) => {
+      toast({
+        title: "Well that's embarrassing...",
+        description: `Something went wrong while liking this post.\nCode: ${
+          error.data?.code ?? "INTERNAL_SERVER_ERROR"
+        }\nMessage: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  const { mutate: unlikePost } = api.posts.unlikePost.useMutation({
+    onSuccess: async () => await trpcContext.posts.getPosts.invalidate(),
+    onError: (error) => {
+      toast({
+        title: "Well that's embarrassing...",
+        description: `Something went wrong while unliking this post.\nCode: ${
+          error.data?.code ?? "INTERNAL_SERVER_ERROR"
+        }\nMessage: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  const { data: postLikes } = api.posts.getPostLikes.useQuery(props.post.id, {
+    enabled: fetchPostLikes,
+  });
+  if (!props.post || !user) return null;
   const post = props.post;
   const author = post.author;
   const latestEdit = post.previousEdits[0];
@@ -243,6 +274,59 @@ function Post(props: { post: PostWithBasicUser }) {
             />
           </div>
         )}
+        <div className="flex items-center justify-between px-4 pt-2">
+          <div className="flex gap-2">
+            {!post.likedByUser && (
+              <button
+                onClick={() => likePost(post.id)}
+                className="transition-colors hover:text-red-600"
+              >
+                <FaRegHeart size={24} />
+              </button>
+            )}
+            {post.likedByUser && (
+              <button
+                onClick={() => unlikePost(post.id)}
+                className="text-red-600 transition-colors hover:text-foreground"
+              >
+                <FaHeart size={24} />
+              </button>
+            )}
+            <Dialog>
+              <DialogTrigger disabled={post.likeCount === 0}>
+                <p onClick={() => setFetchPostLikes(true)} className="text-lg">
+                  {post.likeCount}
+                </p>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Likes</DialogTitle>
+                </DialogHeader>
+                <div>
+                  {postLikes?.map((user) => {
+                    if (!user.username || !user.profileImageUrl) return null;
+                    return (
+                      <div className="flex items-center gap-2" key={user.id}>
+                        <Image
+                          src={user.profileImageUrl}
+                          alt={`${user.username}'s profile picture`}
+                          height={32}
+                          width={32}
+                          className="rounded-full border-2 border-black"
+                        />
+                        <Link href={`/user/${user.id}`}>
+                          <p className="font-cabin text-lg font-bold">
+                            {toTitleCase(user.username)}
+                          </p>
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
         <p
           className={
             "line-clamp-4 max-h-96 px-4 font-montserrat" +

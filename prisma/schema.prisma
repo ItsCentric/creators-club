@@ -13,7 +13,8 @@ model User {
     followers User[]   @relation("follows")
     following User[]   @relation("follows")
     createdAt DateTime @default(now())
-    Posts     Post[]
+    posts     Post[]
+    likes     Post[]   @relation("PostLikes")
 }
 
 model Post {
@@ -24,6 +25,7 @@ model Post {
     media         Media[]
     content       String       @db.VarChar(1000)
     previousEdits EditedPost[]
+    likes         User[]       @relation("PostLikes", map: "PostLikesConstraint")
 
     @@index([authorId])
 }
